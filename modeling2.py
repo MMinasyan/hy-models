@@ -396,8 +396,8 @@ class HyCorr(PreTrainedModel):
 
         self.output_layer = torch.nn.Linear(config.hidden_dim, config.vocab_size)
 
-        position_indices = torch.arange(1, max(config.encoder_length, config.decoder_length) + 1).expand(1, -1)
-        self.register_buffer('position_indices', position_indices)
+        # position_indices = torch.arange(1, max(config.encoder_length, config.decoder_length) + 1).expand(1, -1)
+        # self.register_buffer('position_indices', position_indices)
         
         causal_mask = torch.triu(torch.ones((config.decoder_length, config.decoder_length), dtype=torch.bool), diagonal=1)
         self.register_buffer('causal_mask', causal_mask)
