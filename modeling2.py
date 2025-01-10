@@ -309,6 +309,7 @@ class HyCorrConfig(PretrainedConfig):
         use_swiglu=False,
         char_embed_dim=256,
         char_num_filters=512,
+        bias=False,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -323,6 +324,7 @@ class HyCorrConfig(PretrainedConfig):
         self.use_swiglu = use_swiglu
         self.char_embed_dim = char_embed_dim
         self.char_num_filters = char_num_filters
+        self.bias = bias
 
 
 class HyCorr(PreTrainedModel):
@@ -345,11 +347,11 @@ class HyCorr(PreTrainedModel):
         self.rope_decoder = RotaryPositionalEmbeddings(dim=config.hidden_dim//config.num_heads, max_seq_len=config.decoder_length, base=500000.)
 
         def _build_sa_encoder():
-            return MHAwRoPE(config.hidden_dim, config.num_heads, rope=self.rope_encoder, dropout=config.dropout, batch_first=True)
+            return MHAwRoPE(config.hidden_dim, config.num_heads, rope=self.rope_encoder, dropout=config.dropout, bias=config.bias, batch_first=True)
         def _build_sa_decoder():
-            return MHAwRoPE(config.hidden_dim, config.num_heads, rope=self.rope_decoder, dropout=config.dropout, batch_first=True)
+            return MHAwRoPE(config.hidden_dim, config.num_heads, rope=self.rope_decoder, dropout=config.dropout, bias=config.bias, batch_first=True)
         def _build_ca_decoder():
-            return MHAwRoPE(config.hidden_dim, config.num_heads, rope=self.rope_encoder, rope_decoder=self.rope_decoder, dropout=config.dropout, batch_first=True)
+            return MHAwRoPE(config.hidden_dim, config.num_heads, rope=self.rope_encoder, rope_decoder=self.rope_decoder, dropout=config.dropout, bias=config.bias, batch_first=True)
         def _build_linear1():
             return SwiGLUFF(hidden_dim=config.hidden_dim, intermediate_dim=config.hidden_dim * 4)
         # def _build_linear2():
@@ -369,7 +371,8 @@ class HyCorr(PreTrainedModel):
             activation=nn.Identity() if self.config.use_swiglu else nn.GELU(),
             layer_norm_eps=1e-05,
             batch_first=True,
-            norm_first=True
+            norm_first=True,
+            bias=config.bias
         )
         self.encoder = torch.nn.TransformerEncoder(encoder_layer, num_layers=config.num_layers)
         
@@ -386,7 +389,8 @@ class HyCorr(PreTrainedModel):
             activation=nn.Identity() if self.config.use_swiglu else nn.GELU(),
             layer_norm_eps=1e-05,
             batch_first=True,
-            norm_first=True
+            norm_first=True,
+            bias=config.bias
         )
         self.decoder = torch.nn.TransformerDecoder(decoder_layer, num_layers=config.num_layers)
 
