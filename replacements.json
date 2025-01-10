@@ -1,0 +1,1869 @@
+[
+    {
+        "pattern": "որպեսզի",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "որպիսի",
+                0.12
+            ]
+        ]
+    },
+    {
+        "pattern": "\\bպառկ(?=(ել|եց|ած|ող|եի))",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "պարկ",
+                0.08
+            ]
+        ]
+    },
+    {
+        "pattern": "(?<=(հն|մգ))աց(?=[նվրո])",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "եց",
+                0.25
+            ]
+        ]
+    },
+    {
+        "pattern": "(?<=(զբաղ|թարմ))աց(?=[նվրո])",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "եց",
+                0.25
+            ]
+        ]
+    },
+    {
+        "pattern": "(?<=(խոնավ|հիմար))աց(?=[նվրո])",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "եց",
+                0.25
+            ]
+        ]
+    },
+    {
+        "pattern": "(?<=իջ)եց(?=[նվր])",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "աց",
+                0.2
+            ]
+        ]
+    },
+    {
+        "pattern": "(?<=(նստ|զզվ|հիշ))եց(?=[նվրո])",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "աց",
+                0.2
+            ]
+        ]
+    },
+    {
+        "pattern": "(?<=փայլ)եց(?=[նվրո])",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "աց",
+                0.2
+            ]
+        ]
+    },
+    {
+        "pattern": "(?<=սովոր)եց(?=[նվր])",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "աց",
+                0.2
+            ]
+        ]
+    },
+    {
+        "pattern": "(?<=ծիծաղ)ե",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ա",
+                0.2
+            ]
+        ]
+    },
+    {
+        "pattern": "(?<=գով)ե",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ա",
+                0.2
+            ]
+        ]
+    },
+    {
+        "pattern": "(?<=թռ)ավ",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "չեց",
+                0.15
+            ]
+        ]
+    },
+    {
+        "pattern": "(?<=թռ)ա\\b",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "չեցի",
+                0.15
+            ]
+        ]
+    },
+    {
+        "pattern": "(?<=թռ)ա(?=[նրք])",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "չեցի",
+                0.15
+            ]
+        ]
+    },
+    {
+        "pattern": "(?<=տե)սն",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ն",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "վախեն",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "վախ",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "(?<=խոս)ե(?=[լցյ])",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ա",
+                0.25
+            ]
+        ]
+    },
+    {
+        "pattern": "(?<=(փախ|դիպ|կոր))ա\\b",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "չեցի",
+                0.15
+            ]
+        ]
+    },
+    {
+        "pattern": "(?<=(փախ|դիպ|կոր))ավ",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "չեց",
+                0.15
+            ]
+        ]
+    },
+    {
+        "pattern": "(?<=(փախ|դիպ|կոր))ա(?=[նրք])",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "չեցի",
+                0.15
+            ]
+        ]
+    },
+    {
+        "pattern": "(?<=(կապ|խաբ))վ",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "նվ",
+                0.15
+            ]
+        ]
+    },
+    {
+        "pattern": "(?<=(տուժ|տրաք|կրկն))ե(?=[լցի])",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "վե",
+                0.2
+            ]
+        ]
+    },
+    {
+        "pattern": "(?<=տուժ)ա(?=ծ)",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "վա",
+                0.2
+            ]
+        ]
+    },
+    {
+        "pattern": "(?<=վիճ)ե(?=[լցի])",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "վե",
+                0.2
+            ]
+        ]
+    },
+    {
+        "pattern": "\\Bցրի\\b",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ցրեցի",
+                0.15
+            ]
+        ]
+    },
+    {
+        "pattern": "\\Bցրի(?=[րնք])",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ցրեցի",
+                0.15
+            ]
+        ]
+    },
+    {
+        "pattern": "ցրի(?=նք)",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ցրեցի",
+                0.15
+            ]
+        ]
+    },
+    {
+        "pattern": "ասացի\\b",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ասի",
+                0.15
+            ]
+        ]
+    },
+    {
+        "pattern": "ասացի(?=[րնք]\\b)",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ասի",
+                0.15
+            ]
+        ]
+    },
+    {
+        "pattern": "ասացի(?=նք)",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ասի",
+                0.15
+            ]
+        ]
+    },
+    {
+        "pattern": "աս(?=եք)",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ասաց",
+                0.2
+            ]
+        ]
+    },
+    {
+        "pattern": "(?<=աս)աց",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "եց",
+                0.2
+            ]
+        ]
+    },
+    {
+        "pattern": "(?<=(ար|աց|տվ|դր|եր|ող))եցի\\b",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ի",
+                0.2
+            ]
+        ]
+    },
+    {
+        "pattern": "(?<=(ար|աց|տվ|դր|եր|ող))եցի(?=[րնք]\\b)",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ի",
+                0.2
+            ]
+        ]
+    },
+    {
+        "pattern": "(?<=(ար|աց|տվ|դր|եր|ող))եցի(?=նք)",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ի",
+                0.2
+            ]
+        ]
+    },
+    {
+        "pattern": "կենա(?=[լմսրնքյ])",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "կանա",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "կենում",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "կանում",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "իման",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "գիտեն",
+                0.05
+            ]
+        ]
+    },
+    {
+        "pattern": "գիտե",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "իմանում ե",
+                0.08
+            ]
+        ]
+    },
+    {
+        "pattern": "\\bարի\\b",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "եկ",
+                0.06
+            ]
+        ]
+    },
+    {
+        "pattern": "ցրու\\b",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ցրա",
+                0.15
+            ]
+        ]
+    },
+    {
+        "pattern": "ի՛ր",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ի՛",
+                0.15
+            ]
+        ]
+    },
+    {
+        "pattern": "ե՛ք",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "եցե՛ք",
+                0.06
+            ]
+        ]
+    },
+    {
+        "pattern": "ամաչ",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ամանչ",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "սնանկա",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "սննկա",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "անդրադա",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "անրադա",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "պայթյուն",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "պայթուն",
+                0.03
+            ]
+        ]
+    },
+    {
+        "pattern": "բանավիճ",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "բանավեճ",
+                0.03
+            ]
+        ]
+    },
+    {
+        "pattern": "երկպառակ(?!տ)",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "երկպառակտ",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "կաշեպատ",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "կաշվեպատ",
+                0.15
+            ]
+        ]
+    },
+    {
+        "pattern": "վարկաբեկ",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "վարքաբեկ",
+                0.12
+            ]
+        ]
+    },
+    {
+        "pattern": "հետիոտն",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "հետիոտ",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "օրացուցային",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "օրացույցային",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "բարձիթողի",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "բացիթողի",
+                0.05
+            ]
+        ]
+    },
+    {
+        "pattern": "ասեկոսե",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ասեկոս",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "օրական",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "օրեկան",
+                0.15
+            ]
+        ]
+    },
+    {
+        "pattern": "ամսական",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ամսեկան",
+                0.15
+            ]
+        ]
+    },
+    {
+        "pattern": "հոտնկայս",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ոտնկայս",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "համբույր",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "համբյուր",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "համբուր",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "համբյուր",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "արժանի",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "արժան",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "լրիվ",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "լռիվ",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "նժդեհ(?!ը)",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "նժդե",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "նժդեհը",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "նժդեն",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "(?<=(նախագ|աշվապ|րկրապ|երթապ))ահ(?!ը)",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ա",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "(?<=(նախագ|աշվապ|րկրապ|երթապ))ահը",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ան",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "անկոտրում",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "անկոտրուն",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "անբասիր",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ամբասիր",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "ճանաչել",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ճանանչել",
+                0.03
+            ]
+        ]
+    },
+    {
+        "pattern": "կանացի",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "կանանցի",
+                0.08
+            ]
+        ]
+    },
+    {
+        "pattern": "ռեժիսոր",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ռեժիսյոր",
+                0.05
+            ]
+        ]
+    },
+    {
+        "pattern": "դիրիժոր",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ռիրիժյոր",
+                0.05
+            ]
+        ]
+    },
+    {
+        "pattern": "եվրա\\B",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "եվրո",
+                0.2
+            ]
+        ]
+    },
+    {
+        "pattern": "հունարեն",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "հուներեն",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "չինարեն",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "չիներեն",
+                0.2
+            ]
+        ]
+    },
+    {
+        "pattern": "եզրափակչ\\B",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "եզրափակիչ",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "վայրկենական",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "վայրկյանական",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "վայրկյանաչափ",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "վայրկենաչափ",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "տասը",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "տաս",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "հիսուն",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "հիցուն",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "վաթսուն",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "վացուն",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "ութսուն",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ութանասուն",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "զրո",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "զերո",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "երեսուն",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "եռեսուն",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "հարյուր",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "հարուր",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "մոտավորապես",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "մոտովորապես",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "մտահղաց",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "մտահաղաց",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "որովհետե(?=[ւվ])",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "որտե",
+                0.07
+            ],
+            [
+                "որեւհետե",
+                0.03
+            ]
+        ]
+    },
+    {
+        "pattern": "ձեռնպահ",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ձեռնապահ",
+                0.03
+            ]
+        ]
+    },
+    {
+        "pattern": "բարյացակամ",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "բարյացկամ",
+                0.03
+            ]
+        ]
+    },
+    {
+        "pattern": "բացասա\\B",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "բացսա",
+                0.03
+            ]
+        ]
+    },
+    {
+        "pattern": "հետաքրք\\B",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "հետարք",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "պարապմունք",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "պարապունք",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "առաջին",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "առաջի",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "վերջին",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "վերջի",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "այլք",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "այլոք",
+                0.25
+            ]
+        ]
+    },
+    {
+        "pattern": "հանձին(?!ս)",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "հանձինս",
+                0.25
+            ]
+        ]
+    },
+    {
+        "pattern": "զոքանչ",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "զոնքաչ",
+                0.05
+            ],
+            [
+                "զոնքաջ",
+                0.05
+            ]
+        ]
+    },
+    {
+        "pattern": "իրավամբ",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "իրավմամբ",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "կամաց",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "կամանց",
+                0.03
+            ]
+        ]
+    },
+    {
+        "pattern": "ուրեմն\\b",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ուրեմը",
+                0.07
+            ],
+            [
+                "ուրեմս",
+                0.05
+            ]
+        ]
+    },
+    {
+        "pattern": "առնվազն\\b",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "առնվազը",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "երկրաշարժ",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "եկրաշարժ",
+                0.07
+            ]
+        ]
+    },
+    {
+        "pattern": "երկրորդ",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "եկրորդ",
+                0.07
+            ]
+        ]
+    },
+    {
+        "pattern": "ցտեսություն",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ստեսցյուն",
+                0.05
+            ]
+        ]
+    },
+    {
+        "pattern": "\\Bթյուն",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ցյուն",
+                0.05
+            ]
+        ]
+    },
+    {
+        "pattern": "թատերա\\B",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "թաթերա",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "մենակ\\b",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "մենակով",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "ջղային",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ջղայն",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "ավելորդ",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ավելնորդ",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "ուկրաինա",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ուկրանյա",
+                0.03
+            ],
+            [
+                "ուկրաինյա",
+                0.03
+            ]
+        ]
+    },
+    {
+        "pattern": "որոնք",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ովքեր",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "որոնց",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ում",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "ավելի շատ",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "շատ ավելի շատ",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "հաջակցություն",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ի աջակցություն",
+                0.2
+            ]
+        ]
+    },
+    {
+        "pattern": "հօգուտ",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ի օգուտ",
+                0.2
+            ]
+        ]
+    },
+    {
+        "pattern": "հուրախություն",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ի ուրախություն",
+                0.2
+            ]
+        ]
+    },
+    {
+        "pattern": "կրկին",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "կրկին անգամ",
+                0.15
+            ]
+        ]
+    },
+    {
+        "pattern": "Խնդրում ենք",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "խնդրվում է",
+                0.15
+            ]
+        ]
+    },
+    {
+        "pattern": "տեղեկություն",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "տեղեկատվություն",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "շնորհիվ",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ի շնորհիվ",
+                0.2
+            ]
+        ]
+    },
+    {
+        "pattern": "հուսով ե\\B",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "հույսով ե",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "յոթ",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "յոթը",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "ըստ երեւույթին",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ըստ երեւույթի",
+                0.2
+            ]
+        ]
+    },
+    {
+        "pattern": "սեղմ\\B",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "սխմ\\B",
+                0.08
+            ],
+            [
+                "սղմ",
+                0.03
+            ]
+        ]
+    },
+    {
+        "pattern": "դեղորայք",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "դեղորայքներ",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "\\Bեղեն",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "եղեններ",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "տեսականի(?!ն)",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "տեսականիներ",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "տեսականին",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "տեսականիները",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "տեսականու",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "տեսականիներ",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "թիմ(?=[ոիեա])",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "թմ",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "դուստր(?=ե)",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "դստր",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "\\Bերեն\\b",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "երեն լեզու",
+                0.03
+            ]
+        ]
+    },
+    {
+        "pattern": "\\Bերեն(?=[իո])",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "երեն լեզվ",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "\\Bերեն[ըն]",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "երեն լեզուն",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "փողոցում",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "փողոցի վրա",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "\\bէստեղ\\B",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ստեղ",
+                0.025
+            ],
+            [
+                "ըստեղ",
+                0.025
+            ],
+            [
+                "ստե",
+                0.01
+            ],
+            [
+                "ըստե",
+                0.01
+            ]
+        ]
+    },
+    {
+        "pattern": "\\bայստեղ\\B",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ստեղ",
+                0.025
+            ],
+            [
+                "ըստեղ",
+                0.025
+            ],
+            [
+                "ստե",
+                0.01
+            ],
+            [
+                "ըստե",
+                0.01
+            ]
+        ]
+    },
+    {
+        "pattern": "\\bէդտեղ",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ըտեղ",
+                0.025
+            ],
+            [
+                "տեղ",
+                0.01
+            ],
+            [
+                "ըտե",
+                0.01
+            ]
+        ]
+    },
+    {
+        "pattern": "\\bայդտեղ",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ըտեղ",
+                0.025
+            ],
+            [
+                "տեղ",
+                0.01
+            ],
+            [
+                "ըտե",
+                0.01
+            ]
+        ]
+    },
+    {
+        "pattern": "\\bէնտեղ",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ընդեղ",
+                0.025
+            ],
+            [
+                "ընդե",
+                0.01
+            ]
+        ]
+    },
+    {
+        "pattern": "\\bայնտեղ",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ընդեղ",
+                0.025
+            ],
+            [
+                "ընդե",
+                0.01
+            ]
+        ]
+    },
+    {
+        "pattern": "\\bորտեղ",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "որդե",
+                0.01
+            ],
+            [
+                "որտե",
+                0.01
+            ],
+            [
+                "ուր",
+                0.01
+            ]
+        ]
+    },
+    {
+        "pattern": "\\bուր",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ուրդե",
+                0.01
+            ],
+            [
+                "ուրտե",
+                0.01
+            ],
+            [
+                "ուրդեղ",
+                0.01
+            ],
+            [
+                "որտեղ",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "այսպես",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "սենց",
+                0.025
+            ],
+            [
+                "ըսենց",
+                0.025
+            ]
+        ]
+    },
+    {
+        "pattern": "էսպես",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "սենց",
+                0.025
+            ],
+            [
+                "ըսենց",
+                0.025
+            ]
+        ]
+    },
+    {
+        "pattern": "այդպես",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "տենց",
+                0.025
+            ],
+            [
+                "ըտենց",
+                0.025
+            ]
+        ]
+    },
+    {
+        "pattern": "էդպես",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "տենց",
+                0.025
+            ],
+            [
+                "ըտենց",
+                0.025
+            ]
+        ]
+    },
+    {
+        "pattern": "այնպես",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "նենց",
+                0.025
+            ],
+            [
+                "ընենց",
+                0.025
+            ]
+        ]
+    },
+    {
+        "pattern": "էնպես",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "նենց",
+                0.025
+            ],
+            [
+                "ընենց",
+                0.025
+            ]
+        ]
+    },
+    {
+        "pattern": "\\bնա\\b",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ինքը",
+                0.13
+            ]
+        ]
+    },
+    {
+        "pattern": "\\bինք[նը]\\b",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "նա",
+                0.13
+            ]
+        ]
+    },
+    {
+        "pattern": "\\Bուկես",
+        "ignore_case": true,
+        "replacement": [
+            [
+                " ու կես",
+                0.15
+            ]
+        ]
+    },
+    {
+        "pattern": "\\bիրեն",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "իրան",
+                0.15
+            ]
+        ]
+    },
+    {
+        "pattern": "\\bիր\\b",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "իրա",
+                0.15
+            ],
+            [
+                "իրեն",
+                0.05
+            ]
+
+        ]
+    },
+    {
+        "pattern": "(?<=\\b[մքձ]ե)զ(?= (հետ|նման|պես|համար|մոտ|վրա))",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ր",
+                0.2
+            ]
+        ]
+    },
+    {
+        "pattern": "ինձ(?= (հետ|նման|պես|համար|մոտ|վրա))",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "իմ",
+                0.2
+            ]
+        ]
+    },
+    {
+        "pattern": "ինչի համար\\b",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ինչու համար",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "ինչու",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ինչի",
+                0.15
+            ]
+        ]
+    },
+    {
+        "pattern": "\\bամբողջ[ըն]?",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "սաղ",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "\\bբոլոր[ըն]?",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "սաղ",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "(?<=[աե]լ)իս\\b",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ուց",
+                0.15
+            ]
+        ]
+    },
+    {
+        "pattern": "լինող",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "եղող",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "\\bլին(?=ել|ու)",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ըլն",
+                0.05
+            ],
+            [
+                "եղն",
+                0.01
+            ],
+            [
+                "էղն",
+                0.01
+            ]
+        ]
+    },
+    {
+        "pattern": "\\bել",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "հել",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "\\bինչու",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "խի",
+                0.05
+            ]
+        ]
+    },
+    {
+        "pattern": "կողք",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "կող",
+                0.07
+            ]
+        ]
+    },
+    {
+        "pattern": "կողմ",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "կոմ",
+                0.07
+            ]
+        ]
+    },
+    {
+        "pattern": "\\bդուրս",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "դուս",
+                0.07
+            ]
+        ]
+    },
+    {
+        "pattern": "\\bդրս\\B",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "դս",
+                0.07
+            ]
+        ]
+    },
+    {
+        "pattern": "անձեռո",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "անձեռնո",
+                0.1
+            ]
+        ]
+    },
+    {
+        "pattern": "ճամփ",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ճանփ",
+                0.08
+            ],
+            [
+                "ճամբ",
+                0.02
+            ],
+            [
+                "ճանբ",
+                0.02
+            ]
+        ]
+    },
+    {
+        "pattern": "\\Bալաց\\B",
+        "ignore_case": true,
+        "replacement": [
+            [
+                "ալիզաց",
+                0.10
+            ],
+            [
+                "իզաց",
+                0.03
+            ]
+        ]
+    }
+]
