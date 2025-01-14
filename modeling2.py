@@ -348,8 +348,8 @@ class HyCorr(PreTrainedModel):
             )
         self.embedding = nn.Embedding(config.vocab_size, config.hidden_dim, padding_idx=0)
         # self.pos_embedding = nn.Embedding(max(encoder_length, decoder_length) + 1, hidden_dim)
-        self.rope_encoder = RotaryPositionalEmbeddings(dim=config.hidden_dim//config.num_heads, max_seq_len=config.encoder_length, base=500000.)
-        self.rope_decoder = RotaryPositionalEmbeddings(dim=config.hidden_dim//config.num_heads, max_seq_len=config.decoder_length, base=500000.)
+        self.rope_encoder = RotaryPositionalEmbeddings(dim=config.hidden_dim//config.num_heads, max_seq_len=config.encoder_length, base=10000.)
+        self.rope_decoder = RotaryPositionalEmbeddings(dim=config.hidden_dim//config.num_heads, max_seq_len=config.decoder_length, base=10000.)
 
         def _build_sa_encoder():
             return MHAwRoPE(config.hidden_dim, config.num_heads, rope=self.rope_encoder, dropout=config.dropout, bias=config.bias, batch_first=True)
