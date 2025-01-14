@@ -298,7 +298,7 @@ class HyCorrConfig(PretrainedConfig):
 
     def __init__(
         self, 
-        hidden_dim=768, 
+        hidden_dim=768,
         num_heads=12, 
         num_layers=12,
         char_vocab_size=512,
@@ -309,6 +309,7 @@ class HyCorrConfig(PretrainedConfig):
         use_swiglu=False,
         char_embed_dim=256,
         char_num_filters=512,
+        intermediate_dim=None,
         bias=False,
         **kwargs
     ):
@@ -324,6 +325,10 @@ class HyCorrConfig(PretrainedConfig):
         self.use_swiglu = use_swiglu
         self.char_embed_dim = char_embed_dim
         self.char_num_filters = char_num_filters
+        if intermediate_dim is None:
+            self.intermediate_dim = self.hidden_dim * 4
+        else:
+            self.intermediate_dim = intermediate_dim
         self.bias = bias
 
 
@@ -353,7 +358,7 @@ class HyCorr(PreTrainedModel):
         def _build_ca_decoder():
             return MHAwRoPE(config.hidden_dim, config.num_heads, rope=self.rope_encoder, rope_decoder=self.rope_decoder, dropout=config.dropout, bias=config.bias, batch_first=True)
         def _build_linear1():
-            return SwiGLUFF(hidden_dim=config.hidden_dim, intermediate_dim=config.hidden_dim * 4)
+            return SwiGLUFF(hidden_dim=config.hidden_dim, intermediate_dim=config.intermediate_dim, bias=config.bias)
         # def _build_linear2():
         #     return nn.Identity()
         # def _build_norm():
@@ -366,7 +371,7 @@ class HyCorr(PreTrainedModel):
             linear1=_build_linear1 if self.config.use_swiglu else None,
             # linear2=_build_linear2,
             # norm=_build_norm,
-            dim_feedforward=config.hidden_dim * 4,
+            dim_feedforward=config.intermediate_dim,
             dropout=config.dropout,
             activation=nn.Identity() if self.config.use_swiglu else nn.GELU(),
             layer_norm_eps=1e-05,
@@ -384,7 +389,7 @@ class HyCorr(PreTrainedModel):
             linear1=_build_linear1 if self.config.use_swiglu else None,
             # linear2=_build_linear2,
             # norm=_build_norm,
-            dim_feedforward=config.hidden_dim * 4,
+            dim_feedforward=config.intermediate_dim,
             dropout=config.dropout,
             activation=nn.Identity() if self.config.use_swiglu else nn.GELU(),
             layer_norm_eps=1e-05,
