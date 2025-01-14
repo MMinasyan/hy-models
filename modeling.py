@@ -1,14 +1,13 @@
 import torch
 from torch import nn, Tensor
 import torch.nn.functional as F
-import copy
 from typing import Union, Callable, Optional
 from transformers import PretrainedConfig, PreTrainedModel
 from torchtune.modules import RotaryPositionalEmbeddings
 
 
 class ConvEmbedding(nn.Module):
-    def __init__(self, char_vocab_size, char_embed_dim, num_filters, out_dim, dropout=0.1, padding_idx=None):
+    def __init__(self, char_vocab_size, char_embed_dim, num_filters, out_dim, dropout=0.1, padding_idx=0):
         super().__init__()
         self.char_embed_dim = char_embed_dim
         self.embedding = nn.Embedding(num_embeddings=char_vocab_size, embedding_dim=self.char_embed_dim, padding_idx=padding_idx)
@@ -24,30 +23,26 @@ class ConvEmbedding(nn.Module):
     def forward(self, x):
         # Assume x has shape [batch_size, num_words, word_length]
         batch_size, num_words, word_length = x.shape
-        mask = (x != self.embedding.padding_idx).float()  # Shape: [batch_size, num_words, word_length]
+        mask = (x.sum(-1) > 0).float().unsqueeze(-1) # Shape: [batch_size, num_words, 1]
 
         x = self.embedding(x) # [batch_size, num_words, word_length, char_embed_dim]
         x = x.reshape(-1, word_length, self.char_embed_dim) # [batch_size * num_words, word_length, char_embed_dim]
         x = x.permute(0, 2, 1) # [batch_size * num_words, char_embed_dim, word_length]
-        mask = mask.reshape(-1, 1, word_length).float() # [batch_size * num_words, 1, word_length]
 
         x = self.conv1(x) # [batch_size * num_words, num_filters, word_length]
         x = self.gelu1(x)
-        x = x * mask
 
         x = self.pool1(x) # [batch_size * num_words, num_filters, word_length // 2]
         x = self.dropout(x)
-        mask = self.pool1(mask)
 
         x = self.conv2(x) # [batch_size * num_words, out_dim, word_length // 2]
         x = self.gelu2(x)
-        x = x * mask
 
         x = self.max_pool(x) # [batch_size * num_words, out_dim, 1]
         x = x.squeeze(-1) # [batch_size * num_words, out_dim]
         x = x.reshape(batch_size, num_words, -1) # [batch_size, num_words, out_dim]
 
-        return x
+        return x * mask
 
 
 class TransformerEncoderLayer(nn.TransformerEncoderLayer):
@@ -82,11 +77,11 @@ class TransformerEncoderLayer(nn.TransformerEncoderLayer):
 
         self.norm_first = norm_first
         if norm is None:
-            self.norm1 = nn.LayerNorm(d_model, eps=layer_norm_eps, bias=bias, **factory_kwargs)
-            self.norm2 = nn.LayerNorm(d_model, eps=layer_norm_eps, bias=bias, **factory_kwargs)
+            self.norm1 = nn.RMSNorm(d_model, eps=layer_norm_eps, elementwise_affine=True)
+            self.norm2 = nn.RMSNorm(d_model, eps=layer_norm_eps, elementwise_affine=True)
         else:
             self.norm1 = norm()
-            self.norm2 = copy.deepcopy(self.norm1)
+            self.norm2 = norm()
 
         self.dropout1 = nn.Dropout(dropout)
         self.dropout2 = nn.Dropout(dropout)
@@ -186,9 +181,9 @@ class TransformerDecoderLayer(nn.TransformerDecoderLayer):
 
         self.norm_first = norm_first
         if norm is None:
-            self.norm1 = nn.LayerNorm(d_model, eps=layer_norm_eps, bias=bias, **factory_kwargs)
-            self.norm2 = nn.LayerNorm(d_model, eps=layer_norm_eps, bias=bias, **factory_kwargs)
-            self.norm3 = nn.LayerNorm(d_model, eps=layer_norm_eps, bias=bias, **factory_kwargs)
+            self.norm1 = nn.RMSNorm(d_model, eps=layer_norm_eps, elementwise_affine=True)
+            self.norm2 = nn.RMSNorm(d_model, eps=layer_norm_eps, elementwise_affine=True)
+            self.norm3 = nn.RMSNorm(d_model, eps=layer_norm_eps, elementwise_affine=True)
         else:
             self.norm1 = norm()
             self.norm2 = norm()
@@ -217,28 +212,29 @@ class SwiGLUFF(nn.Module):
         self,
         hidden_dim: int,
         intermediate_dim: int,
+        bias: bool = False,
         **kwargs
     ):
         super().__init__()
-        self.w = nn.Linear(hidden_dim, intermediate_dim)
-        self.v = nn.Linear(hidden_dim, intermediate_dim)
+        self.w = nn.Linear(hidden_dim, intermediate_dim, bias=bias)
+        self.v = nn.Linear(hidden_dim, intermediate_dim, bias=bias)
         self.silu = nn.SiLU()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.silu(self.w(x)) * self.v(x)
 
 
-class RMSNorm(nn.Module):
-    def __init__(self, dim: int, eps: float = 1e-6) -> None:
-        super().__init__()
-        self.eps = eps
-        self.scale = nn.Parameter(torch.ones(dim))
+# class RMSNorm(nn.Module):
+#     def __init__(self, dim: int, eps: float = 1e-6) -> None:
+#         super().__init__()
+#         self.eps = eps
+#         self.scale = nn.Parameter(torch.ones(dim))
 
-    def forward(self, x: torch.Tensor) ->torch. Tensor:
-        x_normed = (
-            x * torch.rsqrt(x.pow(2).mean(-1, keepdim=True) + self.eps)
-        )
-        return x_normed * self.scale
+#     def forward(self, x: torch.Tensor) ->torch. Tensor:
+#         x_normed = (
+#             x * torch.rsqrt(x.pow(2).mean(-1, keepdim=True) + self.eps)
+#         )
+#         return x_normed * self.scale
 
 
 # class MHAwRoPE(nn.MultiheadAttention):
@@ -273,8 +269,8 @@ class RMSNorm(nn.Module):
 
 
 class MHAwRoPE(nn.MultiheadAttention):
-    def __init__(self, embed_dim, num_heads, rope, rope_decoder=None, **kwargs):
-        super().__init__(embed_dim, num_heads, **kwargs)
+    def __init__(self, embed_dim, num_heads, rope, rope_decoder=None, bias=False, **kwargs):
+        super().__init__(embed_dim, num_heads, bias=bias, **kwargs)
         self.rope = rope
         self.rope_decoder = rope_decoder
 
@@ -302,27 +298,32 @@ class HyCorrConfig(PretrainedConfig):
 
     def __init__(
         self, 
-        hidden_dim=768, 
+        hidden_dim=768,
         num_heads=12, 
-        num_layers=12, 
-        # char_vocab_size=256, 
+        num_layers=12,
+        char_vocab_size=512,
         vocab_size=50000, 
         dropout=0.1, 
-        encoder_length=512, 
-        decoder_length=512,
+        max_length=512,
         use_swiglu=False,
+        intermediate_dim=None,
+        bias=False,
         **kwargs
     ):
         super().__init__(**kwargs)
         self.hidden_dim = hidden_dim
         self.num_heads = num_heads
         self.num_layers = num_layers
-        # self.char_vocab_size = char_vocab_size
+        self.char_vocab_size = char_vocab_size
         self.vocab_size = vocab_size
         self.dropout = dropout
-        self.encoder_length = encoder_length
-        self.decoder_length = decoder_length
+        self.max_length = max_length
         self.use_swiglu = use_swiglu
+        if intermediate_dim is None:
+            self.intermediate_dim = self.hidden_dim * 4
+        else:
+            self.intermediate_dim = intermediate_dim
+        self.bias = bias
 
 
 class HyCorr(PreTrainedModel):
@@ -330,21 +331,18 @@ class HyCorr(PreTrainedModel):
 
     def __init__(self, config):
         super().__init__(config)
-        
-        # self.encoder_embedding = ConvEmbedding(config.char_vocab_size, config.char_dim, config.char_dim*2, config.hidden_dim, dropout=config.dropout, padding_idx=0)
+
         self.embedding = nn.Embedding(config.vocab_size, config.hidden_dim, padding_idx=0)
-        # self.pos_embedding = nn.Embedding(max(encoder_length, decoder_length) + 1, hidden_dim)
-        self.rope_encoder = RotaryPositionalEmbeddings(dim=config.hidden_dim//config.num_heads, max_seq_len=config.encoder_length, base=500000.)
-        self.rope_decoder = RotaryPositionalEmbeddings(dim=config.hidden_dim//config.num_heads, max_seq_len=config.decoder_length, base=500000.)
+        self.rope = RotaryPositionalEmbeddings(dim=config.hidden_dim//config.num_heads, max_seq_len=config.max_length, base=10000.)
 
         def _build_sa_encoder():
-            return MHAwRoPE(config.hidden_dim, config.num_heads, rope=self.rope_encoder, dropout=config.dropout, batch_first=True)
+            return MHAwRoPE(config.hidden_dim, config.num_heads, rope=self.rope, dropout=config.dropout, bias=config.bias, batch_first=True)
         def _build_sa_decoder():
-            return MHAwRoPE(config.hidden_dim, config.num_heads, rope=self.rope_decoder, dropout=config.dropout, batch_first=True)
+            return MHAwRoPE(config.hidden_dim, config.num_heads, rope=self.rope, dropout=config.dropout, bias=config.bias, batch_first=True)
         def _build_ca_decoder():
-            return MHAwRoPE(config.hidden_dim, config.num_heads, rope=self.rope_encoder, rope_decoder=self.rope_decoder, dropout=config.dropout, batch_first=True)
+            return MHAwRoPE(config.hidden_dim, config.num_heads, rope=self.rope, rope_decoder=self.rope, dropout=config.dropout, bias=config.bias, batch_first=True)
         def _build_linear1():
-            return SwiGLUFF(hidden_dim=config.hidden_dim, intermediate_dim=config.hidden_dim * 4)
+            return SwiGLUFF(hidden_dim=config.hidden_dim, intermediate_dim=config.intermediate_dim, bias=config.bias)
         # def _build_linear2():
         #     return nn.Identity()
         # def _build_norm():
@@ -357,12 +355,13 @@ class HyCorr(PreTrainedModel):
             linear1=_build_linear1 if self.config.use_swiglu else None,
             # linear2=_build_linear2,
             # norm=_build_norm,
-            dim_feedforward=config.hidden_dim * 4,
+            dim_feedforward=config.intermediate_dim,
             dropout=config.dropout,
             activation=nn.Identity() if self.config.use_swiglu else nn.GELU(),
             layer_norm_eps=1e-05,
             batch_first=True,
-            norm_first=True
+            norm_first=True,
+            bias=config.bias
         )
         self.encoder = torch.nn.TransformerEncoder(encoder_layer, num_layers=config.num_layers)
         
@@ -374,21 +373,19 @@ class HyCorr(PreTrainedModel):
             linear1=_build_linear1 if self.config.use_swiglu else None,
             # linear2=_build_linear2,
             # norm=_build_norm,
-            dim_feedforward=config.hidden_dim * 4,
+            dim_feedforward=config.intermediate_dim,
             dropout=config.dropout,
             activation=nn.Identity() if self.config.use_swiglu else nn.GELU(),
             layer_norm_eps=1e-05,
             batch_first=True,
-            norm_first=True
+            norm_first=True,
+            bias=config.bias
         )
         self.decoder = torch.nn.TransformerDecoder(decoder_layer, num_layers=config.num_layers)
 
         self.output_layer = torch.nn.Linear(config.hidden_dim, config.vocab_size)
-
-        position_indices = torch.arange(1, max(config.encoder_length, config.decoder_length) + 1).expand(1, -1)
-        self.register_buffer('position_indices', position_indices)
         
-        causal_mask = torch.triu(torch.ones((config.decoder_length, config.decoder_length), dtype=torch.bool), diagonal=1)
+        causal_mask = torch.triu(torch.ones((config.max_length, config.max_length), dtype=torch.bool), diagonal=1)
         self.register_buffer('causal_mask', causal_mask)
 
         self.loss_fct = torch.nn.CrossEntropyLoss(ignore_index=-100)
@@ -399,8 +396,6 @@ class HyCorr(PreTrainedModel):
             attention_mask = attention_mask == 0
         
         encoder_embeddings = self.embedding(input_ids)
-        # position_embeddings = self.pos_embedding(self.position_indices)
-        # encoder_embeddings = encoder_embeddings + position_embeddings[:,:input_ids.size(1)]
 
         encoder_outputs = self.encoder(encoder_embeddings, src_key_padding_mask=attention_mask)
 
