@@ -224,50 +224,6 @@ class SwiGLUFF(nn.Module):
         return self.silu(self.w(x)) * self.v(x)
 
 
-# class RMSNorm(nn.Module):
-#     def __init__(self, dim: int, eps: float = 1e-6) -> None:
-#         super().__init__()
-#         self.eps = eps
-#         self.scale = nn.Parameter(torch.ones(dim))
-
-#     def forward(self, x: torch.Tensor) ->torch. Tensor:
-#         x_normed = (
-#             x * torch.rsqrt(x.pow(2).mean(-1, keepdim=True) + self.eps)
-#         )
-#         return x_normed * self.scale
-
-
-# class MHAwRoPE(nn.MultiheadAttention):
-#     def __init__(self, embed_dim, num_heads, rope, rope_decoder=None, **kwargs):
-#         nn.Module.__init__(self)
-#         self.mha = nn.MultiheadAttention(embed_dim, num_heads, **kwargs)
-#         self.batch_first = self.mha.batch_first
-#         self._qkv_same_embed_dim = self.mha._qkv_same_embed_dim
-#         self.embed_dim = self.mha.embed_dim
-#         self.num_heads = self.mha.num_heads
-#         self.in_proj_bias = self.mha.in_proj_bias
-#         self.rope = rope
-#         self.rope_decoder = rope_decoder
-
-#     def forward(self, query, key, value, **kwargs):
-#         # print(f'embed_dim: {self.embed_dim}, num_heads: {self.num_heads}')
-#         q_shape, k_shape = query.size(), key.size()
-#         query = query.view(query.size(0), query.size(1), self.num_heads, self.rope.dim)
-#         key = key.view(key.size(0), key.size(1), self.num_heads, self.rope.dim)
-#         if self.rope_decoder is None:
-#             # print(f'query shape: {query.shape}')
-#             query = self.rope(query)  # Apply RoPE to query
-#         else:
-#             query = self.rope_decoder(query)
-#         key = self.rope(key)
-#         return self.mha(
-#             query.view(q_shape),
-#             key.view(k_shape),
-#             value,
-#             **kwargs
-#             )
-
-
 class MHAwRoPE(nn.MultiheadAttention):
     def __init__(self, embed_dim, num_heads, rope, rope_decoder=None, bias=False, **kwargs):
         super().__init__(embed_dim, num_heads, bias=bias, **kwargs)
