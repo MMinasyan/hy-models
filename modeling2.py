@@ -250,7 +250,6 @@ class MHAwRoPE(nn.MultiheadAttention):
             )
 
 
-
 class HyCorrConfig(PretrainedConfig):
     model_type = "hycorr"
 
@@ -265,10 +264,16 @@ class HyCorrConfig(PretrainedConfig):
         encoder_length=512, 
         decoder_length=512,
         use_swiglu=False,
+        word_length=22,
         char_embed_dim=256,
         char_num_filters=512,
         intermediate_dim=None,
         bias=False,
+        pad_token_id=0,
+        eos_token_id=3,
+        decoder_start_token_id=2,
+        is_decoder=False,
+        is_encoder_decoder=False,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -281,6 +286,7 @@ class HyCorrConfig(PretrainedConfig):
         self.encoder_length = encoder_length
         self.decoder_length = decoder_length
         self.use_swiglu = use_swiglu
+        self.word_length = word_length
         self.char_embed_dim = char_embed_dim
         self.char_num_filters = char_num_filters
         if intermediate_dim is None:
@@ -288,6 +294,11 @@ class HyCorrConfig(PretrainedConfig):
         else:
             self.intermediate_dim = intermediate_dim
         self.bias = bias
+        self.pad_token_id = pad_token_id
+        self.eos_token_id = eos_token_id
+        self.decoder_start_token_id = decoder_start_token_id
+        self.is_decoder = is_decoder
+        self.is_encoder_decoder = is_encoder_decoder
 
 
 class TransformerEncoder(PreTrainedModel):
