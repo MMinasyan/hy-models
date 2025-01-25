@@ -2,8 +2,10 @@ import torch
 from torch import nn, Tensor
 import torch.nn.functional as F
 from typing import Union, Callable, Optional
-from transformers import PretrainedConfig, PreTrainedModel
+from transformers import PretrainedConfig, PreTrainedModel, GenerationMixin
+from transformers.modeling_outputs import BaseModelOutput, Seq2SeqModelOutput, Seq2SeqLMOutput
 from torchtune.modules import RotaryPositionalEmbeddings
+import copy
 
 
 class ConvEmbedding(nn.Module):
@@ -488,22 +490,89 @@ class TransformerDecoder(PreTrainedModel):
         return (hidden_states, all_hidden_states) if output_hidden_states else hidden_states
 
 
+class HyCorrForConditionalGeneration(PreTrainedModel, GenerationMixin):
+    config_class = HyCorrConfig
+
+    def __init__(self, config):
+        super().__init__(config)
+
+
+        encoder_config = copy.deepcopy(config)
+        encoder_config.is_decoder = False
+        encoder_config.is_encoder_decoder = False
+        self.encoder = TransformerEncoder(encoder_config)
+
+        decoder_config = copy.deepcopy(config)
+        decoder_config.is_decoder = True
+        decoder_config.is_encoder_decoder = False
+        self.decoder = TransformerDecoder(decoder_config)
+
+        self.lm_head = torch.nn.Linear(config.hidden_dim, config.vocab_size)
+
+        self.loss_fct = torch.nn.CrossEntropyLoss(ignore_index=-100)
+    
+    def get_encoder(self):
+        return self.encoder
+
+    def get_decoder(self):
+        return self.decoder
+
+    def forward(
+        self,
+        input_ids = None,
+        attention_mask = None,
+        decoder_input_ids = None,
+        decoder_attention_mask = None,
+        encoder_outputs = None,
+        inputs_embeds=None,
+        decoder_inputs_embeds=None,
+        labels = None,
+        return_dict = False,
+        use_cache = False
+        ):
+        assert input_ids is not None or encoder_outputs is not None
+        
+        if encoder_outputs is None:
+            # print('in model:', attention_mask.shape)
+            encoder_outputs = self.encoder(
+                input_ids=input_ids,
+                attention_mask=attention_mask,
+                inputs_embeds=inputs_embeds,
+                return_dict=True
+                )
+
+        if isinstance(encoder_outputs, dict):  # Fallback for compatibility
+            encoder_hidden_states = encoder_outputs["last_hidden_state"]
+        else:
+            encoder_hidden_states = encoder_outputs.last_hidden_state
+
         decoder_outputs = self.decoder(
-            decoder_embeddings,
-            memory=encoder_outputs,
-            tgt_mask=self.causal_mask[:decoder_input_ids.size(1),:decoder_input_ids.size(1)],
-            memory_key_padding_mask=attention_mask,
-            tgt_key_padding_mask=decoder_attention_mask
+            input_ids=decoder_input_ids,
+            attention_mask=decoder_attention_mask,
+            encoder_outputs=encoder_hidden_states,
+            encoder_attention_mask=attention_mask,
+            inputs_embeds=decoder_inputs_embeds
         )
 
-        output_logits = self.output_layer(decoder_outputs)
-        output_logits = output_logits.permute(0, 2, 1)
-        
-        outputs = {'logits': output_logits}
+        output_logits = self.lm_head(decoder_outputs)
+           
+        # Compute loss if labels are provided
+        loss = None
         if labels is not None:
-            loss = self.loss_fct(output_logits, labels)
-            outputs['loss'] = loss
-        
-        return outputs
+            loss = self.loss_fct(output_logits.permute(0, 2, 1), labels)
 
+        # Return as Seq2SeqLMOutput
+        if return_dict:
+            return Seq2SeqLMOutput(
+                loss=loss,
+                logits=output_logits,
+                past_key_values=None,  # For caching, if implemented
+                decoder_hidden_states=None,  # Add if needed
+                decoder_attentions=None,  # Add if needed
+                cross_attentions=None,  # Add if needed
+                encoder_last_hidden_state=encoder_hidden_states,
+            )
+        
+        # Return as tuple if not returning a dictionary
+        return (loss, output_logits) if labels is not None else output_logits
 
