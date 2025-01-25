@@ -288,7 +288,7 @@ class HyCorrConfig(PretrainedConfig):
         self.bias = bias
 
 
-class HyCorr(PreTrainedModel):
+class TransformerEncoder(PreTrainedModel):
     config_class = HyCorrConfig
 
     def __init__(self, config):
@@ -302,13 +302,83 @@ class HyCorr(PreTrainedModel):
             dropout=0.1,
             padding_idx=0
             )
-        self.embedding = nn.Embedding(config.vocab_size, config.hidden_dim, padding_idx=0)
-        # self.pos_embedding = nn.Embedding(max(encoder_length, decoder_length) + 1, hidden_dim)
-        self.rope_encoder = RotaryPositionalEmbeddings(dim=config.hidden_dim//config.num_heads, max_seq_len=config.encoder_length, base=10000.)
-        self.rope_decoder = RotaryPositionalEmbeddings(dim=config.hidden_dim//config.num_heads, max_seq_len=config.decoder_length, base=10000.)
-
+        self.rope_encoder = RotaryPositionalEmbeddings(
+            dim=config.hidden_dim//config.num_heads,
+            max_seq_len=config.encoder_length,
+            base=10000.
+            )
+        
         def _build_sa_encoder():
             return MHAwRoPE(config.hidden_dim, config.num_heads, rope=self.rope_encoder, dropout=config.dropout, bias=config.bias, batch_first=True)
+        def _build_linear1():
+            return SwiGLUFF(hidden_dim=config.hidden_dim, intermediate_dim=config.intermediate_dim, bias=config.bias)
+        
+        encoder_kwargs = {
+            'd_model':config.hidden_dim,
+            'nhead':config.num_heads,
+            'self_attn':_build_sa_encoder,
+            'linear1':_build_linear1 if self.config.use_swiglu else None,
+            'dim_feedforward':config.intermediate_dim,
+            'dropout':config.dropout,
+            'activation':nn.Identity() if self.config.use_swiglu else nn.GELU(),
+            'layer_norm_eps':1e-05,
+            'batch_first':True,
+            'norm_first':True,
+            'bias':config.bias
+        }
+
+        self.layers = nn.ModuleList([TransformerEncoderLayer(**encoder_kwargs) for _ in range(config.num_layers)])
+
+    def forward(
+        self,
+        input_ids = None,
+        attention_mask = None,
+        inputs_embeds = None,
+        output_attentions=False,
+        output_hidden_states=False,
+        return_dict=False
+    ):
+        if input_ids is not None and inputs_embeds is not None:
+            raise ValueError("Cannot pass both input_ids and inputs_embeds")
+        
+        if inputs_embeds is None:
+            if input_ids is None:
+                raise ValueError("Missing input_ids or inputs_embeds")
+            if input_ids.dim() == 2:
+                b, s = input_ids.size()
+                seq_len = s // self.config.word_length
+                input_ids = input_ids.view(b, seq_len, self.config.word_length)
+            inputs_embeds = self.encoder_embedding(input_ids)
+        
+        hidden_states = nn.functional.dropout(inputs_embeds, p=self.config.dropout, training=self.training)
+        
+        if attention_mask is not None:
+            attention_mask = attention_mask == 0
+        
+        all_hidden_states = [] if output_hidden_states else None
+
+        for encoder_layer in self.layers:
+            # print('in encoder:', attention_mask.shape)
+            if output_hidden_states:
+                all_hidden_states.append(hidden_states)
+
+            hidden_states = encoder_layer(
+                hidden_states,
+                src_key_padding_mask=attention_mask,
+            )
+        if output_hidden_states:
+            all_hidden_states.append(hidden_states)
+
+        if return_dict:
+            return BaseModelOutput(
+                last_hidden_state=hidden_states,
+                hidden_states=all_hidden_states,
+                attentions=None,  # No attention weights to return
+            )
+        
+        # Return a tuple if return_dict=False
+        return (hidden_states, all_hidden_states) if output_hidden_states else hidden_states
+
         def _build_sa_decoder():
             return MHAwRoPE(config.hidden_dim, config.num_heads, rope=self.rope_decoder, dropout=config.dropout, bias=config.bias, batch_first=True)
         def _build_ca_decoder():
