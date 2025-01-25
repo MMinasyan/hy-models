@@ -379,80 +379,114 @@ class TransformerEncoder(PreTrainedModel):
         # Return a tuple if return_dict=False
         return (hidden_states, all_hidden_states) if output_hidden_states else hidden_states
 
+
+class TransformerDecoder(PreTrainedModel):
+    config_class = HyCorrConfig
+
+    def __init__(self, config):
+        super().__init__(config)
+
+        self.decoder_embedding = nn.Embedding(config.vocab_size, config.hidden_dim, padding_idx=0)
+        
+        self.rope_decoder = RotaryPositionalEmbeddings(
+            dim=config.hidden_dim//config.num_heads,
+            max_seq_len=config.decoder_length,
+            base=10000.
+            )
+        
+        self.rope_encoder = RotaryPositionalEmbeddings(
+            dim=self.config.hidden_dim//self.config.num_heads,
+            max_seq_len=self.config.encoder_length,
+            base=10000.
+            )
+        
         def _build_sa_decoder():
             return MHAwRoPE(config.hidden_dim, config.num_heads, rope=self.rope_decoder, dropout=config.dropout, bias=config.bias, batch_first=True)
         def _build_ca_decoder():
             return MHAwRoPE(config.hidden_dim, config.num_heads, rope=self.rope_encoder, rope_decoder=self.rope_decoder, dropout=config.dropout, bias=config.bias, batch_first=True)
         def _build_linear1():
             return SwiGLUFF(hidden_dim=config.hidden_dim, intermediate_dim=config.intermediate_dim, bias=config.bias)
-        # def _build_linear2():
-        #     return nn.Identity()
-        # def _build_norm():
-        #     return RMSNorm(hidden_dim)
-        # Encoder components
-        encoder_layer = TransformerEncoderLayer(
-            d_model=config.hidden_dim,
-            nhead=config.num_heads,
-            self_attn=_build_sa_encoder,
-            linear1=_build_linear1 if self.config.use_swiglu else None,
-            # linear2=_build_linear2,
-            # norm=_build_norm,
-            dim_feedforward=config.intermediate_dim,
-            dropout=config.dropout,
-            activation=nn.Identity() if self.config.use_swiglu else nn.GELU(),
-            layer_norm_eps=1e-05,
-            batch_first=True,
-            norm_first=True,
-            bias=config.bias
-        )
-        self.encoder = torch.nn.TransformerEncoder(encoder_layer, num_layers=config.num_layers)
-        
-        decoder_layer = TransformerDecoderLayer(
-            d_model=config.hidden_dim,
-            nhead=config.num_heads,
-            self_attn=_build_sa_decoder,
-            multihead_attn=_build_ca_decoder,
-            linear1=_build_linear1 if self.config.use_swiglu else None,
-            # linear2=_build_linear2,
-            # norm=_build_norm,
-            dim_feedforward=config.intermediate_dim,
-            dropout=config.dropout,
-            activation=nn.Identity() if self.config.use_swiglu else nn.GELU(),
-            layer_norm_eps=1e-05,
-            batch_first=True,
-            norm_first=True,
-            bias=config.bias
-        )
-        self.decoder = torch.nn.TransformerDecoder(decoder_layer, num_layers=config.num_layers)
 
-        self.output_layer = torch.nn.Linear(config.hidden_dim, config.vocab_size)
+        decoder_kwargs = {
+            'd_model':config.hidden_dim,
+            'nhead':config.num_heads,
+            'self_attn':_build_sa_decoder,
+            'multihead_attn':_build_ca_decoder,
+            'linear1':_build_linear1 if self.config.use_swiglu else None,
+            'dim_feedforward':config.intermediate_dim,
+            'dropout':config.dropout,
+            'activation':nn.Identity() if self.config.use_swiglu else nn.GELU(),
+            'layer_norm_eps':1e-05,
+            'batch_first':True,
+            'norm_first':True,
+            'bias':config.bias
+        }
 
-        # position_indices = torch.arange(1, max(config.encoder_length, config.decoder_length) + 1).expand(1, -1)
-        # self.register_buffer('position_indices', position_indices)
-        
+        self.layers = nn.ModuleList([TransformerDecoderLayer(**decoder_kwargs) for _ in range(config.num_layers)])
+
+        self.out_norm = nn.RMSNorm(config.hidden_dim, eps=1e-05, elementwise_affine=True)
+
         causal_mask = torch.triu(torch.ones((config.decoder_length, config.decoder_length), dtype=torch.bool), diagonal=1)
         self.register_buffer('causal_mask', causal_mask)
+           
 
-        self.loss_fct = torch.nn.CrossEntropyLoss(ignore_index=-100)
+    def forward(
+        self,
+        input_ids: torch.LongTensor = None,
+        attention_mask: Optional[torch.Tensor] = None,
+        encoder_outputs: Optional[torch.FloatTensor] = None,
+        encoder_attention_mask: Optional[torch.LongTensor] = None,
+        inputs_embeds: Optional[torch.FloatTensor] = None,
+        output_attentions=False,
+        output_hidden_states=False,
+        return_dict=False
+    ):
+        
+        if input_ids is not None and inputs_embeds is not None:
+            raise ValueError("Cannot pass both input_ids and inputs_embeds")
+        
+        if inputs_embeds is None:
+            if input_ids is None:
+                raise ValueError("Missing input_ids or inputs_embeds")
+            inputs_embeds = self.decoder_embedding(input_ids)
 
-
-    def forward(self, input_ids, decoder_input_ids, attention_mask=None, decoder_attention_mask=None, labels=None):
         if attention_mask is not None:
             attention_mask = attention_mask == 0
+
+        if encoder_attention_mask is not None:
+            encoder_attention_mask = encoder_attention_mask == 0
+
+        hidden_states = nn.functional.dropout(inputs_embeds, p=self.config.dropout, training=self.training)
         
-        encoder_embeddings = self.encoder_embedding(input_ids)
-        # encoder_embeddings = self.embedding(input_ids)
+        all_hidden_states = [] if output_hidden_states else None
 
-        # position_embeddings = self.pos_embedding(self.position_indices)
-        # encoder_embeddings = encoder_embeddings + position_embeddings[:,:input_ids.size(1)]
+        # print('num self.layers', len(self.layers))
+        for decoder_layer in self.layers:
+            if output_hidden_states:
+                all_hidden_states.append(hidden_states)
 
-        encoder_outputs = self.encoder(encoder_embeddings, src_key_padding_mask=attention_mask)
+            hidden_states = decoder_layer(
+                hidden_states,
+                encoder_outputs,
+                tgt_mask=self.causal_mask[:inputs_embeds.size(1),:inputs_embeds.size(1)],
+                tgt_key_padding_mask=attention_mask,
+                memory_key_padding_mask=encoder_attention_mask,
+                tgt_is_causal=True
+            )
+            # print('decoder layer output shape:', hidden_states.shape)
+        hidden_states = self.out_norm(hidden_states)
 
-        if decoder_attention_mask is not None:
-            decoder_attention_mask = decoder_attention_mask == 0
+        if return_dict:
+            return Seq2SeqModelOutput(
+                last_hidden_state=hidden_states,  # Assuming the final hidden state corresponds to logits
+                past_key_values=None,  # Not implemented here
+                decoder_hidden_states=all_hidden_states,
+                decoder_attentions=None,  # No attention weights in this example
+                cross_attentions=None,   # No cross-attention weights in this example
+            )
+        
+        return (hidden_states, all_hidden_states) if output_hidden_states else hidden_states
 
-        decoder_embeddings = self.embedding(decoder_input_ids)
-        # decoder_embeddings = decoder_embeddings + position_embeddings[:,:decoder_input_ids.size(1)]
 
         decoder_outputs = self.decoder(
             decoder_embeddings,
