@@ -425,9 +425,9 @@ class EncoderLayer(nn.Module):
         x = self.norm2(hidden_states)
         x_mlp = self.mlp(x)
         x_mlp = self.dropout_layer(x_mlp)
-        x = x + x_mlp
+        hidden_states = hidden_states + x_mlp
 
-        return x
+        return hidden_states
 
 
 class DecoderLayer(nn.Module):
