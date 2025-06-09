@@ -76,11 +76,12 @@ class Conv1dEmbedding(nn.Module):
     def __init__(self, embed_dim, hidden_size, vocab_size, inter_dim=512, kernel_size=5, dropout=0.1):
         super().__init__()
         self.embed = nn.Embedding(vocab_size, embed_dim, padding_idx=0)
+        self.norm1 = nn.LayerNorm(embed_dim)
         self.conv1 = nn.Conv1d(in_channels=embed_dim, out_channels=inter_dim, kernel_size=kernel_size, stride=1, padding='same', bias=False)
-        # self.linear = nn.Linear(inter_dim * 2, hidden_size, bias=False)
-        self.pool = nn.MaxPool1d(kernel_size=2)
-        self.norm = nn.LayerNorm(inter_dim)
-        self.conv2 = nn.Conv1d(in_channels=inter_dim, out_channels=hidden_size, kernel_size=kernel_size, stride=3, padding=3, bias=True)
+        self.linear = nn.Linear(inter_dim * 2, hidden_size, bias=True)
+        # self.pool = nn.MaxPool1d(kernel_size=2)
+        self.norm2 = nn.LayerNorm(hidden_size)
+        self.conv2 = nn.Conv1d(in_channels=hidden_size, out_channels=hidden_size, kernel_size=kernel_size, stride=3, padding=3, bias=True)
         self.dropout = nn.Dropout(dropout)
         self._init_weights()
         
@@ -91,35 +92,36 @@ class Conv1dEmbedding(nn.Module):
         nn.init.kaiming_normal_(self.conv2.weight, mode='fan_in', nonlinearity='relu')
         if self.conv1.bias is not None:
             nn.init.zeros_(self.conv1.bias)
-        # nn.init.kaiming_normal_(self.linear.weight, mode='fan_in', nonlinearity='relu')
-        # if self.linear.bias is not None:
-        #     nn.init.zeros_(self.linear.bias)
+        nn.init.kaiming_normal_(self.linear.weight, mode='fan_in', nonlinearity='relu')
+        if self.linear.bias is not None:
+            nn.init.zeros_(self.linear.bias)
     
     def forward(self, x):
         x = self.embed(x)
-        # x = self.norm1(x)
+        x = self.norm1(x)
         x = x.permute(0, 2, 1)
 
         x = self.conv1(x)
         x = F.gelu(x)
         x = self.dropout(x)
 
-        # # Patch Merging
-        # batch_size, channels, seq_len = x.shape
-        # if seq_len % 2 != 0:
-        #     x = F.pad(x, (0, 1))
-        #     seq_len += 1
-        # x = x.view(batch_size, channels, seq_len // 2, 2)
-        # x = x.permute(0, 2, 3, 1).contiguous()
-        # x = x.view(batch_size, seq_len // 2, -1)
+        # Patch Merging
+        batch_size, channels, seq_len = x.shape
+        if seq_len % 2 != 0:
+            x = F.pad(x, (0, 1))
+            seq_len += 1
+        x = x.view(batch_size, channels, seq_len // 2, 2)
+        x = x.permute(0, 2, 3, 1).contiguous()
+        x = x.view(batch_size, seq_len // 2, -1)
 
-        # x = self.linear(x)
-        # x = self.norm2(x)
-        # x = x.permute(0, 2, 1)
-
-        x = self.pool(x)
-        x = self.norm(x.permute(0, 2, 1))
+        x = self.linear(x)
+        x = self.norm2(x)
+        x = self.dropout(x)
         x = x.permute(0, 2, 1)
+
+        # x = self.pool(x)
+        # x = self.norm(x.permute(0, 2, 1))
+        # x = x.permute(0, 2, 1)
 
         x = self.conv2(x)
         x = F.gelu(x)
