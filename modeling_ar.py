@@ -29,10 +29,12 @@ class MultiLayerPerceptron(nn.Module):
         self._init_weights()
 
     def _init_weights(self):
-        # Initialize w and v with standard deviation = 0.02
-        nn.init.normal_(self.w.weight, mean=0.0, std=0.02)
-        nn.init.normal_(self.v.weight, mean=0.0, std=0.02)
-        nn.init.normal_(self.out.weight, mean=0.0, std=0.02 / (2 * self.num_layers)**0.5)  # Scaled for residual connections
+        # std = 1 / math.sqrt(self.hidden_size * self.num_layers)
+        # out_std = 1 / math.sqrt(self.intermediate_dim * self.num_layers)
+        std = 0.02 / math.sqrt(self.num_layers)
+        nn.init.normal_(self.w.weight, mean=0.0, std=std)
+        nn.init.normal_(self.v.weight, mean=0.0, std=std)
+        nn.init.normal_(self.out.weight, mean=0.0, std=std)
         if self.bias == True:
             nn.init.constant_(self.w.bias, 0)
             nn.init.constant_(self.v.bias, 0)
@@ -84,13 +86,15 @@ class MultiHeadSelfAttention(nn.Module):
         self._reset_parameters()
 
     def _reset_parameters(self):
-        std = 0.02
+        # std = 0.02
+        # kv_std = std / (self.num_heads / self.num_groups) ** 0.5
+        # out_std = std / (2 * self.num_layers)**0.5
+        std = 0.02 / math.sqrt(self.num_layers)
         kv_std = std / (self.num_heads / self.num_groups) ** 0.5
-        out_std = std / (2 * self.num_layers)**0.5
         torch.nn.init.normal_(self.query_proj.weight, mean=0.0, std=std)
         torch.nn.init.normal_(self.key_proj.weight, mean=0.0, std=kv_std)
         torch.nn.init.normal_(self.value_proj.weight, mean=0.0, std=kv_std)
-        torch.nn.init.normal_(self.out_proj.weight, mean=0.0, std=out_std)  # Scaled for residual connections
+        torch.nn.init.normal_(self.out_proj.weight, mean=0.0, std=std)
 
         # Handle biases if they exist (bias=True)
         if self.bias:
