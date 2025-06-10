@@ -6,8 +6,8 @@ from transformers import PreTrainedModel, PretrainedConfig, GenerationMixin
 from typing import Optional, Tuple, Union
 import math
 import copy
-from modeling_components import MultiLayerPerceptron, MultiHeadSelfAttention, MultiHeadCrossAttention, Conv1dEmbedding, RotaryPositionalEmbeddings
-from configuration import AutoEditConfig
+from .modeling_components import MultiLayerPerceptron, MultiHeadSelfAttention, MultiHeadCrossAttention, Conv1dEmbedding, RotaryPositionalEmbeddings
+from .configuration import AutoEditConfig
 
 
 def build_embedding(config):

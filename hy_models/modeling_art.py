@@ -6,8 +6,8 @@ from transformers import PreTrainedModel, PretrainedConfig, GenerationMixin
 from typing import Optional, Tuple, Union
 import math
 import copy
-from modeling_components import MultiLayerPerceptron, MultiHeadSelfAttention, RotaryPositionalEmbeddings
-from configuration import ArtConfig
+from .modeling_components import MultiLayerPerceptron, MultiHeadSelfAttention, RotaryPositionalEmbeddings
+from .configuration import ArtConfig
 
 
 class ArtDecoderLayer(nn.Module):
