@@ -99,13 +99,14 @@ class MultiHeadSelfAttention(nn.Module):
         Args:
             embed_dim (int): Embedding dimension of the input.
             num_heads (int): Number of attention heads.
-            dropout (float): Dropout probability.
+            dropout (float, optional): Dropout probability. Defaults to 0.0.
             num_groups (int, optional): Number of query groups for Grouped Query Attention.
-                                        If None, defaults to num_heads (standard MHA).
-            bias (bool): If True, adds bias to input/output projection layers.
-            is_decoder (bool): If True, applies causal attention (decoder mode).
-                               If False, applies full attention (encoder mode).
-            pos_encoding (nn.Module): positional encoding
+                If None, defaults to num_heads (standard MHA). Defaults to None.
+            bias (bool, optional): If True, adds bias to input/output projection layers. Defaults to False.
+            is_decoder (bool, optional): If True, applies causal attention (decoder mode).
+                If False, applies full attention (encoder mode). Defaults to False.
+            pos_encoding (nn.Module, optional): Positional encoding module. Defaults to None.
+            num_layers (int, optional): Number of layers in the model, used for weight initialization. Defaults to 12.
         """
         super().__init__()
         self.embed_dim = embed_dim
@@ -157,10 +158,10 @@ class MultiHeadSelfAttention(nn.Module):
         Args:
             hidden_states (torch.Tensor): Input tensor of shape [batch_size, seq_len, embed_dim].
             past_key_value (tuple, optional): Tuple of (past_key, past_value), each of shape
-                [batch_size, num_groups, past_seq_len, head_dim].
-            use_cache (bool): Whether to return cached key/value for generation.
+                [batch_size, num_groups, past_seq_len, head_dim]. Defaults to None.
+            use_cache (bool, optional): Whether to return cached key/value for generation. Defaults to False.
             attention_mask (torch.Tensor, optional): Attention mask of shape
-                [batch_size, seq_len] for padding.
+                [batch_size, seq_len] for padding. Defaults to None.
 
         Returns:
             torch.Tensor: Output tensor of shape [batch_size, seq_len, embed_dim].
@@ -260,12 +261,12 @@ class MultiHeadCrossAttention(nn.Module):
         Args:
             embed_dim (int): Embedding dimension of the input.
             num_heads (int): Number of attention heads.
-            dropout (float): Dropout probability.
+            dropout (float, optional): Dropout probability. Defaults to 0.0.
             num_groups (int, optional): Number of query groups for Grouped Query Attention.
-                If None, defaults to num_heads (standard MHA).
-            bias (bool): If True, adds bias to input/output projection layers.
-            pos_encoding (nn.Module): Positional encoding module,
-                should expect tensor with shape [batch_size, seq_len, num_heads(or num_groups), head_dim]
+                If None, defaults to num_heads (standard MHA). Defaults to None.
+            bias (bool, optional): If True, adds bias to input/output projection layers. Defaults to False.
+            pos_encoding (nn.Module, optional): Positional encoding module. Defaults to None.
+            num_layers (int, optional): Number of layers in the model, used for weight initialization. Defaults to 12.
         """
         super().__init__()
         self.embed_dim = embed_dim
@@ -309,9 +310,10 @@ class MultiHeadCrossAttention(nn.Module):
         Forward pass of the cross-attention layer with Grouped Query Attention support.
 
         Args:
-            hidden_states (torch.Tensor): Decoder input tensor, shape [batch_size, tgt_seq_len, embed_dim].
-            encoder_output (torch.Tensor): Encoder output tensor, shape [batch_size, src_seq_len, embed_dim].
-            encoder_mask (torch.Tensor, optional): Padding mask for encoder, shape [batch_size, src_seq_len].
+            hidden_states (torch.Tensor): Decoder input tensor of shape [batch_size, tgt_seq_len, embed_dim].
+            encoder_output (torch.Tensor): Encoder output tensor of shape [batch_size, src_seq_len, embed_dim].
+            encoder_mask (torch.Tensor, optional): Padding mask for encoder of shape [batch_size, src_seq_len].
+                Defaults to None.
 
         Returns:
             torch.Tensor: Output tensor of shape [batch_size, tgt_seq_len, embed_dim].

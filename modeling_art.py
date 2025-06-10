@@ -12,6 +12,21 @@ from configuration import ArtConfig
 
 
 class ArtDecoderLayer(nn.Module):
+    """
+    A single decoder layer for the Art model, consisting of self-attention, MLP, and normalization.
+
+    Args:
+        hidden_size (int): Dimension of the input and output.
+        num_heads (int): Number of attention heads.
+        intermediate_dim (int): Dimension of the intermediate MLP layer.
+        num_groups (int, optional): Number of query groups for Grouped Query Attention. Defaults to None.
+        dropout (float, optional): Dropout probability. Defaults to 0.1.
+        bias (bool, optional): Whether to add bias to linear layers. Defaults to False.
+        mlp (nn.Module, optional): Custom MLP module. If None, uses default MultiLayerPerceptron. Defaults to None.
+        norm (nn.Module, optional): Custom normalization module. If None, uses RMSNorm. Defaults to None.
+        layer_norm_eps (float, optional): Epsilon for layer normalization. Defaults to 1e-5.
+        pos_encoding (nn.Module, optional): Positional encoding module. Defaults to None.
+    """
     def __init__(self, hidden_size: int, num_heads: int, intermediate_dim: int, num_groups: int = None, dropout: float = 0.1, bias: bool = False,
                  mlp: nn.Module = None, norm: nn.Module = None, layer_norm_eps: float = 1e-5, pos_encoding=None):
         super().__init__()
@@ -190,6 +205,14 @@ class ArtModel(nn.Module):
 
 
 class ArtForCausalLM(PreTrainedModel, GenerationMixin):
+    """
+    The Art model for causal language modeling, compatible with Hugging Face Transformers.
+
+    This class wraps the ArtModel and adds a language modeling head for next-token prediction.
+
+    Args:
+        config (ArtConfig): Configuration object containing model hyperparameters.
+    """
     config_class = ArtConfig
 
     def __init__(self, config):
@@ -255,7 +278,29 @@ class ArtForCausalLM(PreTrainedModel, GenerationMixin):
         output_hidden_states: Optional[bool] = None,
         return_dict: Optional[bool] = None,
     ) -> Union[Tuple, CausalLMOutputWithPast]:
+        """
+        Forward pass of the Art model for causal language modeling.
 
+        Args:
+            input_ids (torch.LongTensor, optional): Input token IDs of shape [batch_size, seq_len]. Defaults to None.
+            attention_mask (torch.Tensor, optional): Padding mask of shape [batch_size, seq_len]. Defaults to None.
+            position_ids (torch.LongTensor, optional): Position indices for input tokens. Defaults to None.
+            past_key_values (tuple, optional): Cached key-value states for each layer. Defaults to None.
+            inputs_embeds (torch.FloatTensor, optional): Pre-computed input embeddings of shape [batch_size, seq_len, hidden_size]. Defaults to None.
+            labels (torch.LongTensor, optional): Target token IDs for computing loss. Defaults to None.
+            use_cache (bool, optional): If True, returns past key-value states. Defaults to None.
+            output_attentions (bool, optional): If True, returns attention weights. Defaults to None.
+            output_hidden_states (bool, optional): If True, returns all hidden states. Defaults to None.
+            return_dict (bool, optional): If True, returns a CausalLMOutputWithPast object. Defaults to None.
+
+        Returns:
+            Union[Tuple, CausalLMOutputWithPast]: Model outputs containing:
+                - loss (torch.FloatTensor, optional): Loss if labels are provided.
+                - logits (torch.FloatTensor): Prediction scores.
+                - past_key_values (tuple, optional): Past key-value states if use_cache is True.
+                - hidden_states (tuple, optional): All hidden states if output_hidden_states is True.
+                - attentions (tuple, optional): All attention weights if output_attentions is True.
+        """
         transformer_outputs = self.transformer(
             input_ids=input_ids,
             attention_mask=attention_mask,

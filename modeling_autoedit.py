@@ -336,20 +336,11 @@ class Encoder(PreTrainedModel):
         Initialize the Encoder module for a transformer model.
 
         Args:
-            config (PretrainedConfig): Configuration object containing model hyperparameters, such as
-                vocab_size (int): Size of the vocabulary.
-                hidden_size (int): Dimension of the hidden states.
-                num_layers (int): Number of encoder layers.
-                num_heads (int): Number of attention heads.
-                intermediate_dim (int): Dimension of the feed-forward network.
-                dropout (float): Dropout probability.
-                etc.
+            config (PretrainedConfig): Configuration object containing model hyperparameters.
             shared_embedding (nn.Module, optional): Shared embedding layer for token embeddings.
-                If None, a new nn.Embedding layer is created with shape [vocab_size, hidden_size].
-                Defaults to None.
-            pos_encoding (nn.Module, optional): Positional encoding module (e.g., RotaryPositionalEmbeddings).
-                If None, a default RotaryPositionalEmbeddings is initialized with parameters derived from config.
-                Defaults to None.
+                If None, a new nn.Embedding layer is created. Defaults to None.
+            pos_encoding (nn.Module, optional): Positional encoding module.
+                If None, a default RotaryPositionalEmbeddings is initialized. Defaults to None.
         """
         super().__init__(config)
         # self.config = config
@@ -408,29 +399,19 @@ class Encoder(PreTrainedModel):
         Forward pass of the Encoder module.
 
         Args:
-            input_ids (torch.LongTensor, optional): Input token IDs with shape [batch_size, seq_len].
-                Represents the sequence of token indices to be encoded. Defaults to None.
-            attention_mask (torch.Tensor, optional): Padding mask with shape [batch_size, seq_len].
-                1 indicates positions to attend to, 0 indicates padding positions to ignore. Defaults to None.
-            inputs_embeds (torch.FloatTensor, optional): Pre-computed embedded inputs with shape
-                [batch_size, seq_len, hidden_size]. Alternative to input_ids. Defaults to None.
-            output_hidden_states (bool, optional): If True, returns hidden states from all layers.
-                Defaults to False if not specified.
-            return_dict (bool, optional): If True, returns a BaseModelOutput object; otherwise, returns a tuple.
-                Defaults to True if not specified.
+            input_ids (torch.LongTensor, optional): Input token IDs of shape [batch_size, seq_len]. Defaults to None.
+            attention_mask (torch.Tensor, optional): Padding mask of shape [batch_size, seq_len]. Defaults to None.
+            inputs_embeds (torch.FloatTensor, optional): Pre-computed embedded inputs of shape
+                [batch_size, seq_len, hidden_size]. Defaults to None.
+            output_hidden_states (bool, optional): If True, returns hidden states from all layers. Defaults to None.
+            output_attentions (bool, optional): If True, returns attention weights. Defaults to None.
+            return_dict (bool, optional): If True, returns a BaseModelOutput object. Defaults to None.
 
         Returns:
-            Union[Tuple, BaseModelOutput]:
-                - If return_dict is True:
-                    BaseModelOutput containing:
-                        - last_hidden_state (torch.FloatTensor): Final hidden states, shape [batch_size, seq_len, hidden_size].
-                        - hidden_states (tuple of torch.FloatTensor, optional): All hidden states from each layer,
-                          each of shape [batch_size, seq_len, hidden_size], returned if output_hidden_states is True.
-                - If return_dict is False:
-                    Tuple containing:
-                        - last_hidden_state (torch.FloatTensor): Final hidden states, shape [batch_size, seq_len, hidden_size].
-                        - hidden_states (tuple of torch.FloatTensor, optional): All hidden states, returned if
-                          output_hidden_states is True.
+            Union[Tuple, BaseModelOutput]: Model outputs containing:
+                - last_hidden_state (torch.FloatTensor): Final hidden states.
+                - hidden_states (tuple, optional): All hidden states if output_hidden_states is True.
+                - attentions (tuple, optional): All attention weights if output_attentions is True.
 
         Raises:
             ValueError: If both input_ids and inputs_embeds are provided, or if neither is provided.
@@ -491,12 +472,11 @@ class Decoder(PreTrainedModel):
         Initialize the Decoder module for an encoder-decoder transformer model.
 
         Args:
-            config (PretrainedConfig): Configuration object containing model hyperparameters, such as
-                vocab_size, hidden_size, num_layers, num_heads, intermediate_dim, dropout, etc.
+            config (PretrainedConfig): Configuration object containing model hyperparameters.
             shared_embedding (nn.Module, optional): Shared embedding layer for token embeddings.
-                If None, a new Embedding layer is created.
-            pos_encoding (nn.Module, optional): Positional encoding module, such as Rotary Positional Embeddings.
-                If None, a default RotaryPositionalEmbeddings module is created.
+                If None, a new Embedding layer is created. Defaults to None.
+            pos_encoding (nn.Module, optional): Positional encoding module.
+                If None, a default RotaryPositionalEmbeddings is initialized. Defaults to None.
         """
         super().__init__(config)
         # self.config = config
@@ -557,30 +537,29 @@ class Decoder(PreTrainedModel):
         Forward pass of the Decoder module.
 
         Args:
-            input_ids (torch.LongTensor, optional): Input token IDs, shape [batch_size, tgt_seq_len].
-            attention_mask (torch.Tensor, optional): Padding mask for the decoder input, shape [batch_size, tgt_seq_len].
-                1 indicates positions to attend, 0 indicates padding.
-            encoder_hidden_states (torch.Tensor, optional): Encoder output, shape [batch_size, src_seq_len, hidden_size].
-                Required for cross-attention.
-            encoder_attention_mask (torch.Tensor, optional): Padding mask for the encoder output, shape [batch_size, src_seq_len].
-                1 indicates positions to attend, 0 indicates padding.
-            past_key_values (tuple of tuples, optional): Past key-value pairs for self-attention in each layer,
-                allowing efficient autoregressive generation. Each tuple contains (key, value) tensors for a layer.
-            use_cache (bool, optional): If True, returns updated past_key_values for caching during generation.
-            inputs_embeds (torch.FloatTensor, optional): Embedded input tensor, shape [batch_size, tgt_seq_len, hidden_size].
-                Alternative to input_ids.
-            output_hidden_states (bool, optional): If True, returns all hidden states across layers.
-            return_dict (bool, optional): If True, returns a BaseModelOutputWithPast object; else, a tuple.
+            input_ids (torch.LongTensor, optional): Input token IDs of shape [batch_size, tgt_seq_len]. Defaults to None.
+            attention_mask (torch.Tensor, optional): Padding mask of shape [batch_size, tgt_seq_len]. Defaults to None.
+            encoder_hidden_states (torch.Tensor, optional): Encoder output of shape
+                [batch_size, src_seq_len, hidden_size]. Defaults to None.
+            encoder_attention_mask (torch.Tensor, optional): Padding mask for encoder of shape
+                [batch_size, src_seq_len]. Defaults to None.
+            past_key_values (tuple, optional): Past key-value pairs for each layer. Defaults to None.
+            use_cache (bool, optional): If True, returns past key-value pairs. Defaults to False.
+            inputs_embeds (torch.FloatTensor, optional): Pre-computed embedded inputs of shape
+                [batch_size, tgt_seq_len, hidden_size]. Defaults to None.
+            output_hidden_states (bool, optional): If True, returns all hidden states. Defaults to None.
+            output_attentions (bool, optional): If True, returns attention weights. Defaults to None.
+            return_dict (bool, optional): If True, returns a BaseModelOutputWithPast object. Defaults to None.
 
         Returns:
-            Union[Tuple, BaseModelOutputWithPast]:
-                - If return_dict is True, returns BaseModelOutputWithPast with:
-                    - last_hidden_state: Final decoder hidden states, shape [batch_size, tgt_seq_len, hidden_size].
-                    - past_key_values: Tuple of updated past key-values if use_cache is True.
-                    - hidden_states: All hidden states if output_hidden_states is True.
-                - If return_dict is False, returns a tuple:
-                    - (last_hidden_state, past_key_values) if use_cache is True.
-                    - (last_hidden_state, hidden_states) if output_hidden_states is True.
+            Union[Tuple, BaseModelOutputWithPast]: Model outputs containing:
+                - last_hidden_state (torch.FloatTensor): Final hidden states.
+                - past_key_values (tuple, optional): Past key-value pairs if use_cache is True.
+                - hidden_states (tuple, optional): All hidden states if output_hidden_states is True.
+                - attentions (tuple, optional): All attention weights if output_attentions is True.
+
+        Raises:
+            ValueError: If both input_ids and inputs_embeds are provided, or if neither is provided.
         """
         # Set defaults
         output_hidden_states = output_hidden_states if output_hidden_states is not None else False
@@ -662,10 +641,10 @@ class AutoEditForConditionalGeneration(PreTrainedModel, GenerationMixin):
     
     def __init__(self, config: AutoEditConfig):
         """
-        Initialize the EncoderDecoderModel with a configuration object.
-        
+        Initialize the AutoEdit model for conditional generation.
+
         Args:
-            config: Configuration object containing model parameters (e.g., vocab_size, hidden_size).
+            config (AutoEditConfig): Configuration object containing model hyperparameters.
         """
         super().__init__(config)
 
@@ -734,29 +713,39 @@ class AutoEditForConditionalGeneration(PreTrainedModel, GenerationMixin):
         encoder_outputs: Optional[Union[BaseModelOutput, Tuple]] = None,
         past_key_values: Optional[Tuple[Tuple[torch.Tensor]]] = None,
         use_cache: bool = False,
-        output_attentions: bool = False,  # To do
+        output_attentions: bool = False,
         labels: Optional[torch.LongTensor] = None,
         return_dict: bool = False,
         **kwargs
     ) -> Union[dict, Tuple]:
         """
-        Forward pass of the encoder-decoder model.
-        
+        Forward pass of the AutoEdit model.
+
         Args:
-            input_ids: Input token IDs for the encoder (batch_size, src_seq_len).
-            attention_mask: Attention mask for the encoder input (batch_size, src_seq_len).
-            decoder_input_ids: Input token IDs for the decoder (batch_size, tgt_seq_len).
-            decoder_attention_mask: Attention mask for the decoder input (batch_size, tgt_seq_len).
-            encoder_outputs: Precomputed encoder outputs (optional).
-            past_key_values: Cached key/value states from previous decoding steps.
-            use_cache: Whether to use caching for generation (returns past_key_values).
-            labels: Target token IDs for computing loss (batch_size, tgt_seq_len).
-            return_dict: Whether to return a dictionary or a tuple.
+            input_ids (torch.LongTensor, optional): Input token IDs of shape [batch_size, src_seq_len]. Defaults to None.
+            attention_mask (torch.Tensor, optional): Padding mask of shape [batch_size, src_seq_len]. Defaults to None.
+            decoder_input_ids (torch.LongTensor, optional): Decoder input token IDs of shape
+                [batch_size, tgt_seq_len]. Defaults to None.
+            decoder_attention_mask (torch.Tensor, optional): Padding mask for decoder of shape
+                [batch_size, tgt_seq_len]. Defaults to None.
+            encoder_outputs (Union[BaseModelOutput, Tuple], optional): Pre-computed encoder outputs. Defaults to None.
+            past_key_values (tuple, optional): Past key-value pairs for each layer. Defaults to None.
+            use_cache (bool, optional): If True, returns past key-value pairs. Defaults to False.
+            output_attentions (bool, optional): If True, returns attention weights. Defaults to False.
+            labels (torch.LongTensor, optional): Target token IDs of shape [batch_size, tgt_seq_len]. Defaults to None.
+            return_dict (bool, optional): If True, returns a dictionary. Defaults to False.
             **kwargs: Additional arguments for compatibility.
-        
+
         Returns:
-            Dictionary or tuple containing loss (if labels provided), logits, and optionally
-            past_key_values, decoder_hidden_states, and encoder_hidden_states.
+            Union[dict, Tuple]: Model outputs containing:
+                - loss (torch.FloatTensor, optional): Loss if labels are provided.
+                - logits (torch.FloatTensor): Prediction scores.
+                - past_key_values (tuple, optional): Past key-value pairs if use_cache is True.
+                - decoder_hidden_states (tuple, optional): All decoder hidden states.
+                - encoder_hidden_states (torch.FloatTensor): Final encoder hidden states.
+
+        Raises:
+            ValueError: If both input_ids and inputs_embeds are provided, or if neither is provided.
         """
         # Compute encoder outputs if not provided
         if encoder_outputs is None:
