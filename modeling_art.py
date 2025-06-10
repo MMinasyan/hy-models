@@ -8,6 +8,7 @@ from torchtune.modules import RotaryPositionalEmbeddings
 import math
 import copy
 from modeling_components import MultiLayerPerceptron, MultiHeadSelfAttention
+from configuration import ArtConfig
 
 
 class ArtDecoderLayer(nn.Module):
@@ -74,43 +75,6 @@ class ArtDecoderLayer(nn.Module):
         if use_cache:
             return x, past_key_value
         return x
-
-
-class ArtConfig(PretrainedConfig):
-    model_type = "art"
-    def __init__(
-        self,
-        hidden_size=768,
-        num_heads=12, 
-        num_layers=12,
-        num_groups=None,
-        vocab_size=50000,
-        dropout=0.1,
-        intermediate_dim=3584,
-        bias=False,
-        max_position_embeddings=2048,
-        layer_norm_eps=1e-5,
-        tie_weights=True,
-        bos_token_id=2,
-        pad_token_id=0,
-        eos_token_id=3,
-        **kwargs
-    ):
-        super().__init__(**kwargs)
-        self.vocab_size = vocab_size
-        self.hidden_size = hidden_size
-        self.num_layers = num_layers
-        self.num_heads = num_heads
-        self.intermediate_dim = intermediate_dim
-        self.num_groups = num_groups
-        self.dropout = dropout
-        self.bias = bias
-        self.layer_norm_eps = layer_norm_eps
-        self.max_position_embeddings = max_position_embeddings
-        self.tie_weights = tie_weights
-        self.bos_token_id = bos_token_id
-        self.pad_token_id = pad_token_id
-        self.eos_token_id = eos_token_id
 
 
 class ArtModel(nn.Module):

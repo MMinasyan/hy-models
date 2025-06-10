@@ -7,8 +7,8 @@ from typing import Optional, Tuple, Union
 from torchtune.modules import RotaryPositionalEmbeddings
 import math
 import copy
-from modeling_components import MultiLayerPerceptron, MultiHeadSelfAttention, MultiHeadCrossAttention, \
-                                PatchEmbedding, ConvEmbedding, Conv1dEmbedding, Stage1Encoder
+from modeling_components import MultiLayerPerceptron, MultiHeadSelfAttention, MultiHeadCrossAttention, Conv1dEmbedding
+from configuration import AutoEditConfig
 
 
 def build_embedding(config):
@@ -654,63 +654,13 @@ class Decoder(PreTrainedModel):
         )
 
 
-class EDConfig(PretrainedConfig):
-    model_type = "hycorr"
-
-    def __init__(
-        self,
-        hidden_size=768,
-        num_heads=12, 
-        num_layers=12,
-        num_encoder_layers=None,
-        num_groups=None,
-        vocab_size=50000, 
-        dropout=0.1,
-        intermediate_dim=3072,
-        bias=False,
-        max_position_embeddings=1024,
-        layer_norm_eps=1e-5,
-        embedding_type='token',
-        tie_weights=True,
-        tie_encoder_weights=True,
-        encoder_vocab_size=None,
-        pad_token_id=0,
-        eos_token_id=3,
-        decoder_start_token_id=2,
-        is_decoder=False,
-        is_encoder_decoder=False,
-        **kwargs
-    ):
-        super().__init__(**kwargs)
-        self.hidden_size = hidden_size
-        self.num_heads = num_heads
-        self.num_layers = num_layers
-        self.num_encoder_layers = num_encoder_layers
-        self.num_groups = num_groups
-        self.vocab_size = vocab_size
-        self.dropout = dropout
-        self.intermediate_dim = intermediate_dim
-        self.bias = bias
-        self.max_position_embeddings = max_position_embeddings
-        self.layer_norm_eps = layer_norm_eps
-        self.embedding_type = embedding_type
-        self.tie_weights = tie_weights
-        self.tie_encoder_weights = tie_encoder_weights
-        self.encoder_vocab_size = encoder_vocab_size
-        self.pad_token_id = pad_token_id
-        self.eos_token_id = eos_token_id
-        self.decoder_start_token_id = decoder_start_token_id
-        self.is_decoder = is_decoder
-        self.is_encoder_decoder = is_encoder_decoder
-
-
-class EDForConditionalGeneration(PreTrainedModel, GenerationMixin):
+class AutoEditForConditionalGeneration(PreTrainedModel, GenerationMixin):
     """
     An encoder-decoder model compatible with the transformers library and GenerationMixin.
     Integrates Encoder and Decoder classes with a shared embedding and language modeling head.
     """
     
-    def __init__(self, config):
+    def __init__(self, config: AutoEditConfig):
         """
         Initialize the EncoderDecoderModel with a configuration object.
         
@@ -825,14 +775,14 @@ class EDForConditionalGeneration(PreTrainedModel, GenerationMixin):
             )
 
         # Decoder forward pass with encoder outputs
-        if self.config.embedding_type == 'stage1' or self.config.embedding_type == 'conv':
+        if self.config.embedding_type == 'conv':
             attention_mask = (encoder_hidden_states.sum(dim=-1) > 0).long()
 
         decoder_outputs = self.decoder(
             input_ids=decoder_input_ids,
             attention_mask=decoder_attention_mask,
             encoder_hidden_states=encoder_hidden_states,
-            encoder_attention_mask=attention_mask,  # Reused for cross-attention
+            encoder_attention_mask=attention_mask,
             past_key_values=past_key_values,
             use_cache=use_cache,
             return_dict=True
