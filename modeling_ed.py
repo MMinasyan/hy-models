@@ -11,28 +11,16 @@ from modeling_components import MultiLayerPerceptron, MultiHeadSelfAttention, Mu
                                 PatchEmbedding, ConvEmbedding, Conv1dEmbedding, Stage1Encoder
 
 
+def build_embedding(config):
+    if config.embedding_type == 'conv':
         return Conv1dEmbedding(embed_dim=256, hidden_size=config.hidden_size, vocab_size=320, inter_dim=max(512, config.hidden_size//2), kernel_size=5, dropout=config.dropout)
-    # embed_dim=256, n_channels=config.hidden_size, vocab_size=320)
     
     elif config.embedding_type == 'token':
-        return nn.Embedding(config.vocab_size, config.hidden_size)
+        return nn.Embedding(config.encoder_vocab_size, config.hidden_size)
     
-    elif config.embedding_type == 'stage1':
-        n_channels = config.hidden_size//2
-        return Stage1Encoder(
-            embed_dim=n_channels,
-            n_channels=n_channels,
-            vocab_size=320,
-            num_heads=n_channels//64,
-            intermediate_dim=n_channels*4,
-            num_layers=2,
-            pos_encoding=pos_encoding,
-            dropout=config.dropout,
-            bias=config.bias
-        )
     else:
-        raise ValueError(f"Invalid embedding_type: {config.empedding_type}. Expected 'patch', 'word', 'token' or 'stage1'.")
-    
+        raise ValueError(f"Invalid embedding_type: {config.empedding_type}. Expected 'token' or 'conv'.")
+
 
 class MultiLayerPerceptron(nn.Module):
     def __init__(
@@ -463,6 +451,9 @@ class Encoder(PreTrainedModel):
 
         # Collect hidden states if requested
         all_hidden_states = () if output_hidden_states else None
+
+        if self.config.embedding_type == 'conv':
+            attention_mask = (hidden_states.sum(dim=-1) > 0).long()
 
         # Pass through each layer
         for i, layer in enumerate(self.layers):
