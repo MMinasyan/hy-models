@@ -8,7 +8,7 @@ class ArtConfig(PretrainedConfig):
         hidden_size=768,
         num_heads=12, 
         num_layers=12,
-        num_groups=None,
+        num_key_value_heads=None,
         vocab_size=50000,
         dropout=0.1,
         intermediate_dim=3584,
@@ -27,7 +27,7 @@ class ArtConfig(PretrainedConfig):
         self.num_layers = num_layers
         self.num_heads = num_heads
         self.intermediate_dim = intermediate_dim
-        self.num_groups = num_groups
+        self.num_key_value_heads = num_key_value_heads
         self.dropout = dropout
         self.bias = bias
         self.layer_norm_eps = layer_norm_eps
@@ -47,7 +47,7 @@ class AutoEditConfig(PretrainedConfig):
         num_heads=12, 
         num_layers=12,
         num_encoder_layers=None,
-        num_groups=None,
+        num_key_value_heads=None,
         vocab_size=50000, 
         dropout=0.1,
         intermediate_dim=3072,
@@ -70,7 +70,7 @@ class AutoEditConfig(PretrainedConfig):
         self.num_heads = num_heads
         self.num_layers = num_layers
         self.num_encoder_layers = num_encoder_layers
-        self.num_groups = num_groups
+        self.num_key_value_heads = num_key_value_heads
         self.vocab_size = vocab_size
         self.dropout = dropout
         self.intermediate_dim = intermediate_dim

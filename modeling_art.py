@@ -19,7 +19,7 @@ class ArtDecoderLayer(nn.Module):
         hidden_size (int): Dimension of the input and output.
         num_heads (int): Number of attention heads.
         intermediate_dim (int): Dimension of the intermediate MLP layer.
-        num_groups (int, optional): Number of query groups for Grouped Query Attention. Defaults to None.
+        num_key_value_heads (int, optional): Number of query groups for Grouped Query Attention. Defaults to None.
         dropout (float, optional): Dropout probability. Defaults to 0.1.
         bias (bool, optional): Whether to add bias to linear layers. Defaults to False.
         mlp (nn.Module, optional): Custom MLP module. If None, uses default MultiLayerPerceptron. Defaults to None.
@@ -27,7 +27,7 @@ class ArtDecoderLayer(nn.Module):
         layer_norm_eps (float, optional): Epsilon for layer normalization. Defaults to 1e-5.
         pos_encoding (nn.Module, optional): Positional encoding module. Defaults to None.
     """
-    def __init__(self, hidden_size: int, num_heads: int, intermediate_dim: int, num_groups: int = None, dropout: float = 0.1, bias: bool = False,
+    def __init__(self, hidden_size: int, num_heads: int, intermediate_dim: int, num_key_value_heads: int = None, dropout: float = 0.1, bias: bool = False,
                  mlp: nn.Module = None, norm: nn.Module = None, layer_norm_eps: float = 1e-5, pos_encoding=None):
         super().__init__()
         self.hidden_size = hidden_size
@@ -36,13 +36,13 @@ class ArtDecoderLayer(nn.Module):
         self.dropout = dropout
         self.bias = bias
         self.layer_norm_eps = layer_norm_eps
-        self.num_groups = num_groups
+        self.num_key_value_heads = num_key_value_heads
 
 
         self.self_attn = MultiHeadSelfAttention(
             embed_dim=hidden_size,
             num_heads=num_heads,
-            num_groups=num_groups,
+            num_key_value_heads=num_key_value_heads,
             dropout=dropout,
             bias=bias,
             is_decoder=True,
@@ -111,7 +111,7 @@ class ArtModel(nn.Module):
                 hidden_size=config.hidden_size,
                 num_heads=config.num_heads,
                 intermediate_dim=config.intermediate_dim,
-                num_groups=config.num_groups,
+                num_key_value_heads=config.num_key_value_heads,
                 dropout=config.dropout,
                 bias=config.bias,
                 layer_norm_eps=config.layer_norm_eps,

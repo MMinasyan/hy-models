@@ -59,7 +59,7 @@ class MultiLayerPerceptron(nn.Module):
 
 
 class MultiHeadCrossAttention(nn.Module):
-    def __init__(self, embed_dim, num_heads, dropout=0.0, num_groups=None, bias=False, pos_encoding=None, num_layers=12):
+    def __init__(self, embed_dim, num_heads, dropout=0.0, num_key_value_heads=None, bias=False, pos_encoding=None, num_layers=12):
         """
         Initialize the multi-headed cross-attention layer with support for Grouped Query Attention.
 
@@ -67,29 +67,29 @@ class MultiHeadCrossAttention(nn.Module):
             embed_dim (int): Embedding dimension of the input.
             num_heads (int): Number of attention heads.
             dropout (float): Dropout probability.
-            num_groups (int, optional): Number of query groups for Grouped Query Attention.
+            num_key_value_heads (int, optional): Number of query groups for Grouped Query Attention.
                 If None, defaults to num_heads (standard MHA).
             bias (bool): If True, adds bias to input/output projection layers.
             pos_encoding (nn.Module): Positional encoding module,
-                should expect tensor with shape [batch_size, seq_len, num_heads(or num_groups), head_dim]
+                should expect tensor with shape [batch_size, seq_len, num_heads(or num_key_value_heads), head_dim]
         """
         super().__init__()
         self.embed_dim = embed_dim
         self.num_heads = num_heads
-        self.num_groups = num_groups if num_groups is not None else num_heads
+        self.num_key_value_heads = num_key_value_heads if num_key_value_heads is not None else num_heads
         self.dropout = dropout
         self.bias = bias
         self.num_layers = num_layers
 
-        # Ensure num_heads is divisible by num_groups
-        assert self.num_heads % self.num_groups == 0, "num_heads must be divisible by num_groups"
+        # Ensure num_heads is divisible by num_key_value_heads
+        assert self.num_heads % self.num_key_value_heads == 0, "num_heads must be divisible by num_key_value_heads"
         self.head_dim = embed_dim // num_heads
         assert self.head_dim * num_heads == embed_dim, "embed_dim must be divisible by num_heads"
 
         # Linear projections
         self.query_proj = nn.Linear(embed_dim, embed_dim, bias=bias)
-        self.key_proj = nn.Linear(embed_dim, self.head_dim * self.num_groups, bias=bias)
-        self.value_proj = nn.Linear(embed_dim, self.head_dim * self.num_groups, bias=bias)
+        self.key_proj = nn.Linear(embed_dim, self.head_dim * self.num_key_value_heads, bias=bias)
+        self.value_proj = nn.Linear(embed_dim, self.head_dim * self.num_key_value_heads, bias=bias)
         self.out_proj = nn.Linear(embed_dim, embed_dim, bias=bias)
         self.dropout = nn.Dropout(dropout)
         self.pos_encoding = pos_encoding
@@ -98,11 +98,11 @@ class MultiHeadCrossAttention(nn.Module):
 
     def _reset_parameters(self):
         # std = 0.02
-        # kv_std = std / (self.num_heads / self.num_groups) ** 0.5
+        # kv_std = std / (self.num_heads / self.num_key_value_heads) ** 0.5
         # out_std = std / (2 * self.num_layers)**0.5
 
         std = 0.02 / math.sqrt(self.num_layers)
-        kv_std = std / (self.num_heads / self.num_groups) ** 0.5
+        kv_std = std / (self.num_heads / self.num_key_value_heads) ** 0.5
         torch.nn.init.normal_(self.query_proj.weight, mean=0.0, std=std)
         torch.nn.init.normal_(self.key_proj.weight, mean=0.0, std=kv_std)
         torch.nn.init.normal_(self.value_proj.weight, mean=0.0, std=kv_std)
@@ -132,28 +132,28 @@ class MultiHeadCrossAttention(nn.Module):
 
         # Compute projections
         query = self.query_proj(hidden_states)  # [batch_size, tgt_seq_len, embed_dim]
-        key = self.key_proj(encoder_output)     # [batch_size, src_seq_len, head_dim * num_groups]
-        value = self.value_proj(encoder_output) # [batch_size, src_seq_len, head_dim * num_groups]
+        key = self.key_proj(encoder_output)     # [batch_size, src_seq_len, head_dim * num_key_value_heads]
+        value = self.value_proj(encoder_output) # [batch_size, src_seq_len, head_dim * num_key_value_heads]
 
         # Reshape before applying positional encoding
         query = query.view(batch_size, tgt_seq_len, self.num_heads, self.head_dim)
-        key = key.view(batch_size, src_seq_len, self.num_groups, self.head_dim)
-        value = value.view(batch_size, src_seq_len, self.num_groups, self.head_dim)
+        key = key.view(batch_size, src_seq_len, self.num_key_value_heads, self.head_dim)
+        value = value.view(batch_size, src_seq_len, self.num_key_value_heads, self.head_dim)
 
 
         # Apply positional encoding to query and key
         if self.pos_encoding is not None:
             query = self.pos_encoding(query)  # [batch_size, tgt_seq_len, num_heads, head_dim]
-            key = self.pos_encoding(key)      # [batch_size, src_seq_len, num_groups, head_dim]
+            key = self.pos_encoding(key)      # [batch_size, src_seq_len, num_key_value_heads, head_dim]
         
         # Reshape for attention
         query = query.transpose(1, 2)  # [batch_size, num_heads, tgt_seq_len, head_dim]
-        key = key.transpose(1, 2)      # [batch_size, num_groups, src_seq_len, head_dim]
-        value = value.transpose(1, 2)  # [batch_size, num_groups, src_seq_len, head_dim]
+        key = key.transpose(1, 2)      # [batch_size, num_key_value_heads, src_seq_len, head_dim]
+        value = value.transpose(1, 2)  # [batch_size, num_key_value_heads, src_seq_len, head_dim]
 
-        # For GQA: Repeat key and value to match num_heads if num_groups < num_heads
-        if self.num_groups != self.num_heads:
-            repeat_factor = self.num_heads // self.num_groups
+        # For GQA: Repeat key and value to match num_heads if num_key_value_heads < num_heads
+        if self.num_key_value_heads != self.num_heads:
+            repeat_factor = self.num_heads // self.num_key_value_heads
             key = key.repeat_interleave(repeat_factor, dim=1)
             value = value.repeat_interleave(repeat_factor, dim=1)
         
@@ -186,7 +186,7 @@ class MultiHeadCrossAttention(nn.Module):
 
 
 class EncoderLayer(nn.Module):
-    def __init__(self, hidden_size: int, num_heads: int, intermediate_dim: int, num_groups: int = None, dropout: float = 0.1, bias: bool = False,
+    def __init__(self, hidden_size: int, num_heads: int, intermediate_dim: int, num_key_value_heads: int = None, dropout: float = 0.1, bias: bool = False,
                  mlp: nn.Module = None, norm: nn.Module = None, layer_norm_eps: float = 1e-5, pos_encoding=None, num_layers=12):
         super().__init__()
         self.hidden_size = hidden_size
@@ -195,13 +195,13 @@ class EncoderLayer(nn.Module):
         self.dropout = dropout
         self.bias = bias
         self.layer_norm_eps = layer_norm_eps
-        self.num_groups = num_groups
+        self.num_key_value_heads = num_key_value_heads
 
 
         self.self_attn = MultiHeadSelfAttention(
             embed_dim=hidden_size,
             num_heads=num_heads,
-            num_groups=num_groups,
+            num_key_value_heads=num_key_value_heads,
             dropout=dropout,
             bias=bias,
             is_decoder=False,
@@ -243,7 +243,7 @@ class EncoderLayer(nn.Module):
 
 
 class DecoderLayer(nn.Module):
-    def __init__(self, hidden_size: int, num_heads: int, intermediate_dim: int, num_groups: int = None, dropout: float = 0.1, bias: bool = False,
+    def __init__(self, hidden_size: int, num_heads: int, intermediate_dim: int, num_key_value_heads: int = None, dropout: float = 0.1, bias: bool = False,
                  mlp: nn.Module = None, norm: nn.Module = None, layer_norm_eps: float = 1e-5, pos_encoding=None, num_layers=12):
         super().__init__()
         self.hidden_size = hidden_size
@@ -252,12 +252,12 @@ class DecoderLayer(nn.Module):
         self.dropout = dropout
         self.bias = bias
         self.layer_norm_eps = layer_norm_eps
-        self.num_groups = num_groups
+        self.num_key_value_heads = num_key_value_heads
 
         self.self_attn = MultiHeadSelfAttention(
             embed_dim=hidden_size,
             num_heads=num_heads,
-            num_groups=num_groups,
+            num_key_value_heads=num_key_value_heads,
             dropout=dropout,
             bias=bias,
             is_decoder=True,
@@ -268,7 +268,7 @@ class DecoderLayer(nn.Module):
         self.cross_attn = MultiHeadCrossAttention(
             embed_dim=hidden_size,
             num_heads=num_heads,
-            num_groups=num_groups,
+            num_key_value_heads=num_key_value_heads,
             dropout=dropout,
             bias=bias,
             # pos_encoding=pos_encoding
@@ -368,7 +368,7 @@ class Encoder(PreTrainedModel):
                 hidden_size=config.hidden_size,
                 num_heads=config.num_heads,
                 intermediate_dim=config.intermediate_dim,
-                num_groups=config.num_groups,
+                num_key_value_heads=config.num_key_value_heads,
                 dropout=config.dropout,
                 bias=config.bias,
                 layer_norm_eps=config.layer_norm_eps,
@@ -503,7 +503,7 @@ class Decoder(PreTrainedModel):
                 hidden_size=config.hidden_size,
                 num_heads=config.num_heads,
                 intermediate_dim=config.intermediate_dim,
-                num_groups=config.num_groups,
+                num_key_value_heads=config.num_key_value_heads,
                 dropout=config.dropout,
                 bias=config.bias,
                 layer_norm_eps=config.layer_norm_eps,
