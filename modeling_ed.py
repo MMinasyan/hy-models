@@ -672,6 +672,8 @@ class EDConfig(PretrainedConfig):
         layer_norm_eps=1e-5,
         embedding_type='token',
         tie_weights=True,
+        tie_encoder_weights=True,
+        encoder_vocab_size=None,
         pad_token_id=0,
         eos_token_id=3,
         decoder_start_token_id=2,
@@ -693,6 +695,8 @@ class EDConfig(PretrainedConfig):
         self.layer_norm_eps = layer_norm_eps
         self.embedding_type = embedding_type
         self.tie_weights = tie_weights
+        self.tie_encoder_weights = tie_encoder_weights
+        self.encoder_vocab_size = encoder_vocab_size
         self.pad_token_id = pad_token_id
         self.eos_token_id = eos_token_id
         self.decoder_start_token_id = decoder_start_token_id
@@ -732,7 +736,11 @@ class EDForConditionalGeneration(PreTrainedModel, GenerationMixin):
         encoder_config.is_decoder = False
         encoder_config.is_encoder_decoder = False
         if self.config.embedding_type == 'token':
-            self.encoder = Encoder(encoder_config, shared_embedding=self.shared_embedding, pos_encoding=self.pos_encoding)
+            self.encoder = Encoder(
+                encoder_config,
+                shared_embedding=self.shared_embedding if config.tie_encoder_weights else None,
+                pos_encoding=self.pos_encoding if config.tie_encoder_weights else None
+                )
         else:
             self.encoder = Encoder(encoder_config, pos_encoding=self.pos_encoding)
         
