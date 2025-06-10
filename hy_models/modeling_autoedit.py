@@ -18,7 +18,7 @@ def build_embedding(config):
         return nn.Embedding(config.encoder_vocab_size, config.hidden_size)
     
     else:
-        raise ValueError(f"Invalid embedding_type: {config.empedding_type}. Expected 'token' or 'conv'.")
+        raise ValueError(f"Invalid embedding_type: {config.embedding_type}. Expected 'token' or 'conv'.")
 
 
 class EncoderLayer(nn.Module):
