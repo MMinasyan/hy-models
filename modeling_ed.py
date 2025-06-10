@@ -841,11 +841,6 @@ class EDForConditionalGeneration(PreTrainedModel, GenerationMixin):
         # Extract decoder hidden states
         decoder_hidden_states = decoder_outputs.last_hidden_state
 
-        # if self.config.tie_weights:
-        #     # Rescale output before projecting on vocab
-        #     # See https://github.com/tensorflow/mesh/blob/fa19d69eafc9a482aff0b59ddd96b025c0cb207d/mesh_tensorflow/transformer/transformer.py#L586
-        #     decoder_hidden_states = decoder_hidden_states * (self.config.hidden_size**-0.5)
-
         # Compute logits using the language modeling head
         logits = self.lm_head(decoder_hidden_states)
 
