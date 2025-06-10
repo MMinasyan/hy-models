@@ -4,10 +4,9 @@ import torch.nn.functional as F
 from transformers.modeling_outputs import BaseModelOutputWithPast, CausalLMOutputWithPast
 from transformers import PreTrainedModel, PretrainedConfig, GenerationMixin
 from typing import Optional, Tuple, Union
-from torchtune.modules import RotaryPositionalEmbeddings
 import math
 import copy
-from modeling_components import MultiLayerPerceptron, MultiHeadSelfAttention
+from modeling_components import MultiLayerPerceptron, MultiHeadSelfAttention, RotaryPositionalEmbeddings
 from configuration import ArtConfig
 
 

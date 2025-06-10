@@ -57,6 +57,70 @@ class Conv1dEmbedding(nn.Module):
         return x.permute(0, 2, 1)
 
 
+class RotaryPositionalEmbeddings(nn.Module):
+    """A PyTorch module that applies rotary positional embeddings to input tensors.
+
+    Args:
+        dim (int): The dimension per head (head_dim). Must be even.
+        max_position (int): The maximum sequence length to precompute the embeddings for.
+        base (float, optional): The base for the geometric progression of rotation angles. Defaults to 10000.
+    """
+    def __init__(self, dim: int, max_position: int = 4096, base: int = 10000):
+        super().__init__()
+        assert dim % 2 == 0, "dim must be even"
+        self.dim = dim
+        self.max_position = max_position
+        self.base = base
+
+        theta = 1.0 / (
+            base ** (torch.arange(0, dim, 2)[: (dim // 2)].float() / dim)
+        )
+        pos = torch.arange(max_position, dtype=torch.float32).reshape(-1, 1, 1, 1)
+        dim_t = theta.reshape(1, 1, 1, -1)
+        angles = pos * dim_t
+        rope_cache = torch.stack([torch.cos(angles), torch.sin(angles)], dim=-1)
+        self.register_buffer('rope_cache', rope_cache)
+
+    def forward(self, x: torch.Tensor, position_ids = None) -> torch.Tensor:
+        """Applies rotary positional embeddings to the input tensor.
+
+        Args:
+            x (torch.Tensor): Input tensor of shape (batch_size, seq_len, num_heads, dim).
+            position_ids (torch.Tensor, optional): Tensor of position indices of shape (seq_len,).
+                If None, defaults to torch.arange(seq_len).
+
+        Returns:
+            torch.Tensor: Output tensor with rotary embeddings applied, same shape as input.
+        """
+        batch_size, seq_len, num_heads, dim = x.shape
+        assert dim == self.dim, "Input dimension mismatch"
+
+        if position_ids is None:
+            position_ids = torch.arange(seq_len, device=x.device, dtype=torch.long)
+        else:
+            assert position_ids.shape == (seq_len,), "position_ids should be of shape (seq_len,)"
+            assert (position_ids >= 0).all() and (position_ids < self.max_position).all(), \
+                "position_ids must be between 0 and max_position - 1"
+
+        rope_cache = self.rope_cache[position_ids]
+        cos_vals = rope_cache[..., 0]
+        sin_vals = rope_cache[..., 1]
+
+        cos_vals = cos_vals.view(1, seq_len, 1, dim // 2)
+        sin_vals = sin_vals.view(1, seq_len, 1, dim // 2)
+
+        x_reshaped = x.float().view(batch_size, seq_len, num_heads, dim // 2, 2)
+        x_even = x_reshaped[..., 0]
+        x_odd = x_reshaped[..., 1]
+
+        out_even = x_even * cos_vals - x_odd * sin_vals
+        out_odd = x_even * sin_vals + x_odd * cos_vals
+
+        out_reshaped = torch.stack([out_even, out_odd], dim=-1)
+        out = out_reshaped.view(batch_size, seq_len, num_heads, dim)
+        return out.type_as(x)
+
+
 class MultiLayerPerceptron(nn.Module):
     def __init__(
         self,

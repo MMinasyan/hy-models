@@ -4,10 +4,9 @@ import torch.nn.functional as F
 from transformers.modeling_outputs import BaseModelOutputWithPast, BaseModelOutput, Seq2SeqLMOutput
 from transformers import PreTrainedModel, PretrainedConfig, GenerationMixin
 from typing import Optional, Tuple, Union
-from torchtune.modules import RotaryPositionalEmbeddings
 import math
 import copy
-from modeling_components import MultiLayerPerceptron, MultiHeadSelfAttention, MultiHeadCrossAttention, Conv1dEmbedding
+from modeling_components import MultiLayerPerceptron, MultiHeadSelfAttention, MultiHeadCrossAttention, Conv1dEmbedding, RotaryPositionalEmbeddings
 from configuration import AutoEditConfig
 
 
