@@ -356,7 +356,7 @@ class Encoder(PreTrainedModel):
 
         # Token embeddings
         if shared_embedding is None:
-            self.embed_tokens = build_embedding(config, self.pos_encoding)
+            self.embed_tokens = build_embedding(config)
         else:
             self.embed_tokens = shared_embedding
         
