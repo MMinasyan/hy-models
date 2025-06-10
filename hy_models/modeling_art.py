@@ -101,7 +101,7 @@ class ArtModel(nn.Module):
         # RoPE
         self.pos_encoding = RotaryPositionalEmbeddings(
             dim=config.hidden_size//config.num_heads,
-            max_seq_len=config.max_position_embeddings,
+            max_position=config.max_position_embeddings,
             base=10000.
             )
         # Stack of ArtDecoderLayers

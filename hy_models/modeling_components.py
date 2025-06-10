@@ -253,8 +253,8 @@ class MultiHeadSelfAttention(nn.Module):
                 )
             else:
                 input_pos = None
-            query = self.pos_encoding(query, input_pos=input_pos)
-            key = self.pos_encoding(key, input_pos=input_pos)
+            query = self.pos_encoding(query, position_ids=input_pos)
+            key = self.pos_encoding(key, position_ids=input_pos)
         
         query = query.transpose(1, 2)
         key = key.transpose(1, 2)
