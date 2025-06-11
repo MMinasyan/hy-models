@@ -1,4 +1,4 @@
-from transformers import PretrainedConfig
+from transformers import PretrainedConfig, CONFIG_MAPPING
 
 
 class ArtConfig(PretrainedConfig):
@@ -62,6 +62,9 @@ class ArtConfig(PretrainedConfig):
         self.bos_token_id = bos_token_id
         self.pad_token_id = pad_token_id
         self.eos_token_id = eos_token_id
+
+
+CONFIG_MAPPING.register("art", ArtConfig)
 
 
 class AutoEditConfig(PretrainedConfig):
@@ -146,3 +149,5 @@ class AutoEditConfig(PretrainedConfig):
         self.decoder_start_token_id = decoder_start_token_id
         self.is_decoder = is_decoder
         self.is_encoder_decoder = is_encoder_decoder
+
+CONFIG_MAPPING.register("autoedit", AutoEditConfig)

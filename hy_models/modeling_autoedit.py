@@ -474,6 +474,7 @@ class AutoEditForConditionalGeneration(PreTrainedModel, GenerationMixin):
     An encoder-decoder model compatible with the transformers library and GenerationMixin.
     Integrates Encoder and Decoder classes with a shared embedding and language modeling head.
     """
+    config_class = AutoEditConfig
     
     def __init__(self, config: AutoEditConfig):
         """
