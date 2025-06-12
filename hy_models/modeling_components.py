@@ -156,7 +156,7 @@ class MultiLayerPerceptron(nn.Module):
 
 
 class MultiHeadSelfAttention(nn.Module):
-    def __init__(self, embed_dim, num_heads, dropout=0.0, num_key_value_heads=None, bias=False, is_decoder=False, pos_encoding=None, num_layers=12):
+    def __init__(self, config, is_decoder=False, pos_encoding=None, num_layers=12):
         """
         Initialize the multi-headed self-attention layer with support for Grouped Query Attention.
 
@@ -173,25 +173,25 @@ class MultiHeadSelfAttention(nn.Module):
             num_layers (int, optional): Number of layers in the model, used for weight initialization. Defaults to 12.
         """
         super().__init__()
-        self.embed_dim = embed_dim
-        self.num_heads = num_heads
-        self.num_key_value_heads = num_key_value_heads if num_key_value_heads is not None else num_heads
-        self.dropout = dropout
-        self.bias = bias
+        self.embed_dim = config.hidden_size
+        self.num_heads = config.num_heads
+        self.num_key_value_heads = config.num_key_value_heads if config.num_key_value_heads is not None else config.num_heads
+        self.dropout = config.dropout
+        self.bias = config.bias
         self.is_decoder = is_decoder  # New parameter to control causal attention
         self.num_layers = num_layers
 
         # Ensure num_heads is divisible by num_key_value_heads
         assert self.num_heads % self.num_key_value_heads == 0, "num_heads must be divisible by num_key_value_heads"
-        self.head_dim = embed_dim // num_heads
-        assert self.head_dim * num_heads == embed_dim, "embed_dim must be divisible by num_heads"
+        self.head_dim = config.hidden_size // config.num_heads
+        assert self.head_dim * config.num_heads == config.hidden_size, "embed_dim must be divisible by num_heads"
 
         # Linear projections
-        self.query_proj = nn.Linear(embed_dim, embed_dim, bias=bias)
-        self.key_proj = nn.Linear(embed_dim, self.head_dim * self.num_key_value_heads, bias=bias)
-        self.value_proj = nn.Linear(embed_dim, self.head_dim * self.num_key_value_heads, bias=bias)
-        self.out_proj = nn.Linear(embed_dim, embed_dim, bias=bias)
-        self.dropout = nn.Dropout(dropout)
+        self.query_proj = nn.Linear(config.hidden_size, config.hidden_size, bias=config.bias)
+        self.key_proj = nn.Linear(config.hidden_size, self.head_dim * self.num_key_value_heads, bias=config.bias)
+        self.value_proj = nn.Linear(config.hidden_size, self.head_dim * self.num_key_value_heads, bias=config.bias)
+        self.out_proj = nn.Linear(config.hidden_size, config.hidden_size, bias=config.bias)
+        self.dropout = nn.Dropout(config.dropout)
         self.pos_encoding = pos_encoding
 
         self._reset_parameters()
@@ -318,7 +318,7 @@ class MultiHeadSelfAttention(nn.Module):
 
 
 class MultiHeadCrossAttention(nn.Module):
-    def __init__(self, embed_dim, num_heads, dropout=0.0, num_key_value_heads=None, bias=False, pos_encoding=None, num_layers=12):
+    def __init__(self, config, pos_encoding=None, num_layers=12):
         """
         Initialize the multi-headed cross-attention layer with support for Grouped Query Attention.
 
@@ -333,24 +333,24 @@ class MultiHeadCrossAttention(nn.Module):
             num_layers (int, optional): Number of layers in the model, used for weight initialization. Defaults to 12.
         """
         super().__init__()
-        self.embed_dim = embed_dim
-        self.num_heads = num_heads
-        self.num_key_value_heads = num_key_value_heads if num_key_value_heads is not None else num_heads
-        self.dropout = dropout
-        self.bias = bias
+        self.embed_dim = config.hidden_size
+        self.num_heads = config.num_heads
+        self.num_key_value_heads = config.num_key_value_heads if config.num_key_value_heads is not None else config.num_heads
+        self.dropout = config.dropout
+        self.bias = config.bias
         self.num_layers = num_layers
 
         # Ensure num_heads is divisible by num_key_value_heads
         assert self.num_heads % self.num_key_value_heads == 0, "num_heads must be divisible by num_key_value_heads"
-        self.head_dim = embed_dim // num_heads
-        assert self.head_dim * num_heads == embed_dim, "embed_dim must be divisible by num_heads"
+        self.head_dim = config.hidden_size // config.num_heads
+        assert self.head_dim * config.num_heads == config.hidden_size, "embed_dim must be divisible by num_heads"
 
         # Linear projections
-        self.query_proj = nn.Linear(embed_dim, embed_dim, bias=bias)
-        self.key_proj = nn.Linear(embed_dim, self.head_dim * self.num_key_value_heads, bias=bias)
-        self.value_proj = nn.Linear(embed_dim, self.head_dim * self.num_key_value_heads, bias=bias)
-        self.out_proj = nn.Linear(embed_dim, embed_dim, bias=bias)
-        self.dropout = nn.Dropout(dropout)
+        self.query_proj = nn.Linear(config.hidden_size, config.hidden_size, bias=config.bias)
+        self.key_proj = nn.Linear(config.hidden_size, self.head_dim * self.num_key_value_heads, bias=config.bias)
+        self.value_proj = nn.Linear(config.hidden_size, self.head_dim * self.num_key_value_heads, bias=config.bias)
+        self.out_proj = nn.Linear(config.hidden_size, config.hidden_size, bias=config.bias)
+        self.dropout = nn.Dropout(config.dropout)
         self.pos_encoding = pos_encoding
 
         self._reset_parameters()

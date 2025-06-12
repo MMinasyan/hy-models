@@ -35,11 +35,7 @@ class EncoderLayer(nn.Module):
 
 
         self.self_attn = MultiHeadSelfAttention(
-            embed_dim=config.hidden_size,
-            num_heads=config.num_heads,
-            num_key_value_heads=config.num_key_value_heads,
-            dropout=config.dropout,
-            bias=config.bias,
+            config=config,
             is_decoder=False,
             pos_encoding=pos_encoding,  # For RoPE
             num_layers=num_layers
@@ -91,22 +87,14 @@ class DecoderLayer(nn.Module):
         self.num_key_value_heads = config.num_key_value_heads
 
         self.self_attn = MultiHeadSelfAttention(
-            embed_dim=config.hidden_size,
-            num_heads=config.num_heads,
-            num_key_value_heads=config.num_key_value_heads,
-            dropout=config.dropout,
-            bias=config.bias,
+            config=config,
             is_decoder=True,
             pos_encoding=pos_encoding,  # For RoPE
             num_layers=num_layers
         )
         # Cross-attention module (non-causal, attends to encoder output)
         self.cross_attn = MultiHeadCrossAttention(
-            embed_dim=config.hidden_size,
-            num_heads=config.num_heads,
-            num_key_value_heads=config.num_key_value_heads,
-            dropout=config.dropout,
-            bias=config.bias,
+            config=config,
             # pos_encoding=pos_encoding
             num_layers=num_layers
         )

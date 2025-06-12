@@ -39,11 +39,7 @@ class ArtDecoderLayer(nn.Module):
 
 
         self.self_attn = MultiHeadSelfAttention(
-            embed_dim=config.hidden_size,
-            num_heads=config.num_heads,
-            num_key_value_heads=config.num_key_value_heads,
-            dropout=config.dropout,
-            bias=config.bias,
+            config,
             is_decoder=True,
             pos_encoding=pos_encoding  # For RoPE
         )
