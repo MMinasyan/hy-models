@@ -26,24 +26,24 @@ class ArtDecoderLayer(nn.Module):
         layer_norm_eps (float, optional): Epsilon for layer normalization. Defaults to 1e-5.
         pos_encoding (nn.Module, optional): Positional encoding module. Defaults to None.
     """
-    def __init__(self, hidden_size: int, num_heads: int, intermediate_dim: int, num_key_value_heads: int = None, dropout: float = 0.1, bias: bool = False,
-                 mlp: nn.Module = None, norm: nn.Module = None, layer_norm_eps: float = 1e-5, pos_encoding=None):
+    def __init__(self, config: ArtConfig,
+                 mlp: nn.Module = None, norm: nn.Module = None, pos_encoding=None):
         super().__init__()
-        self.hidden_size = hidden_size
-        self.num_heads = num_heads
-        self.intermediate_dim = intermediate_dim
-        self.dropout = dropout
-        self.bias = bias
-        self.layer_norm_eps = layer_norm_eps
-        self.num_key_value_heads = num_key_value_heads
+        self.hidden_size = config.hidden_size
+        self.num_heads = config.num_heads
+        self.intermediate_dim = config.intermediate_dim
+        self.dropout = config.dropout
+        self.bias = config.bias
+        self.layer_norm_eps = config.layer_norm_eps
+        self.num_key_value_heads = config.num_key_value_heads
 
 
         self.self_attn = MultiHeadSelfAttention(
-            embed_dim=hidden_size,
-            num_heads=num_heads,
-            num_key_value_heads=num_key_value_heads,
-            dropout=dropout,
-            bias=bias,
+            embed_dim=config.hidden_size,
+            num_heads=config.num_heads,
+            num_key_value_heads=config.num_key_value_heads,
+            dropout=config.dropout,
+            bias=config.bias,
             is_decoder=True,
             pos_encoding=pos_encoding  # For RoPE
         )
@@ -52,20 +52,20 @@ class ArtDecoderLayer(nn.Module):
             self.mlp = mlp
         else:
             self.mlp = MultiLayerPerceptron(
-                hidden_size=hidden_size,
-                intermediate_dim=intermediate_dim,
-                bias=bias
+                hidden_size=config.hidden_size,
+                intermediate_dim=config.intermediate_dim,
+                bias=config.bias
             )
 
         if norm is not None:
             self.norm1 = copy.deepcopy(norm)
             self.norm2 = copy.deepcopy(norm)
         else:
-            self.norm1 = nn.RMSNorm(hidden_size, eps=layer_norm_eps)
-            self.norm2 = nn.RMSNorm(hidden_size, eps=layer_norm_eps)
+            self.norm1 = nn.RMSNorm(config.hidden_size, eps=config.layer_norm_eps)
+            self.norm2 = nn.RMSNorm(config.hidden_size, eps=config.layer_norm_eps)
 
         # Dropout layer
-        self.dropout_layer = nn.Dropout(dropout)
+        self.dropout_layer = nn.Dropout(config.dropout)
     
     def forward(self, hidden_states, past_key_value=None, use_cache=False, attention_mask=None):            
         x = self.norm1(hidden_states)
@@ -107,13 +107,7 @@ class ArtModel(nn.Module):
         # Stack of ArtDecoderLayers
         self.layers = nn.ModuleList([
             ArtDecoderLayer(
-                hidden_size=config.hidden_size,
-                num_heads=config.num_heads,
-                intermediate_dim=config.intermediate_dim,
-                num_key_value_heads=config.num_key_value_heads,
-                dropout=config.dropout,
-                bias=config.bias,
-                layer_norm_eps=config.layer_norm_eps,
+                config=config,
                 pos_encoding=self.pos_encoding  # Pass pos_encoding for RoPE
             ) for _ in range(config.num_layers)
         ])
