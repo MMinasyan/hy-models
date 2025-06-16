@@ -207,6 +207,8 @@ class ArtForCausalLM(PreTrainedModel, GenerationMixin):
         config (ArtConfig): Configuration object containing model hyperparameters.
     """
     config_class = ArtConfig
+    _supports_sdpa = True              # For SDPA
+    _supports_flash_attn_2 = True  # For Flash Attention 2
 
     def __init__(self, config):
         super().__init__(config)

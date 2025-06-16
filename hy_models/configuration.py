@@ -62,6 +62,7 @@ class ArtConfig(PretrainedConfig):
         self.bos_token_id = bos_token_id
         self.pad_token_id = pad_token_id
         self.eos_token_id = eos_token_id
+        self._attn_implementation = kwargs.get("attn_implementation", "sdpa")
 
 
 CONFIG_MAPPING.register("art", ArtConfig)
