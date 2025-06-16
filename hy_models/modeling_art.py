@@ -151,6 +151,10 @@ class ArtModel(nn.Module):
         all_hidden_states = () if output_hidden_states else None
         next_cache = [] if use_cache else None
 
+        if attention_mask is None:
+            attention_mask = hidden_states.sum(dim=-1) == 0
+            attention_mask = attention_mask.to(hidden_states.dtype)
+
         # Pass through each layer
         for i, layer in enumerate(self.layers):
             if output_hidden_states:
