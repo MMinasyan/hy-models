@@ -3,6 +3,7 @@ from torch import nn
 import torch.nn.functional as F
 import math
 from .attention import eager_attn_forward, flash_attn_forward, sdpa_attn_forward, prepare_4d_attn_mask
+import warnings
 
 class Conv1dEmbedding(nn.Module):
     def __init__(self, embed_dim, hidden_size, vocab_size, inter_dim=512, kernel_size=5, dropout=0.1):
@@ -216,7 +217,7 @@ class MultiHeadSelfAttention(nn.Module):
             torch.nn.init.constant_(self.out_proj.bias, 0.0)
 
 
-    def forward(self, hidden_states, past_key_value=None, use_cache=False, attention_mask=None):
+    def forward(self, hidden_states, past_key_value=None, use_cache=False, attention_mask=None, window_size=None, output_attentions=False):
         """
         Forward pass of the self-attention layer with Grouped Query Attention support.
 
@@ -227,7 +228,7 @@ class MultiHeadSelfAttention(nn.Module):
             use_cache (bool, optional): Whether to return cached key/value for generation. Defaults to False.
             attention_mask (torch.Tensor, optional): Attention mask of shape
                 [batch_size, seq_len] for padding. Defaults to None.
-
+            output_attentions (bool, optional): Whether to return the attention weights. Defaults to False.
         Returns:
             torch.Tensor: Output tensor of shape [batch_size, seq_len, embed_dim].
             tuple: (output, past_key_value) if use_cache is True.
@@ -272,6 +273,10 @@ class MultiHeadSelfAttention(nn.Module):
         else:
             is_causal = self.is_decoder  # Apply causal mask only if in decoder mode
 
+        if output_attentions and self.config._attn_implementation != "eager":
+            warnings.warn(f"Attention implementation is set to '{self.config._attn_implementation}' which does not support output_attentions.\
+                          falling back to 'eager' implementation.", UserWarning)
+            self.config._attn_implementation = "eager"
 
         if self.config._attn_implementation == "eager":
             attn_output = eager_attn_forward(
