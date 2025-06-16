@@ -317,7 +317,13 @@ class ArtForCausalLM(PreTrainedModel, GenerationMixin):
             loss = self.loss_fct(shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1))
 
         if not return_dict:
-            output = (logits,) + (past_key_values, all_hidden_states, attentions)
+            output = (logits,)
+            if use_cache is not None:
+                output += (past_key_values,)
+            if output_hidden_states:
+                output += (all_hidden_states,)
+            if output_attentions:
+                output += (attentions,)
             return (loss,) + output if loss is not None else output
 
         return CausalLMOutputWithPast(
