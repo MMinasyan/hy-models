@@ -172,3 +172,39 @@ def eager_attn_forward(query, key, value, causal=False, padding_mask=None, q_pad
     return _eager_attention_forward(query, key, value, attn_mask=attn_mask, dropout_p=dropout_p, output_attentions=output_attentions).transpose(1, 2)
 
 
+def sdpa_attn_forward(query, key, value, causal=False, padding_mask=None, q_padding_mask=None, window_size=None, dropout_p=0.0):
+    """
+    SDPA attention forward pass.
+
+    Args:
+        query (torch.Tensor): Query tensor of shape (batch_size, tgt_seq_len, num_heads, head_dim)
+        key (torch.Tensor): Key tensor of shape (batch_size, src_seq_len, num_heads, head_dim)
+        value (torch.Tensor): Value tensor of shape (batch_size, src_seq_len, num_heads, head_dim)
+        causal (bool, optional): Whether to use causal attention. Defaults to False.
+        padding_mask (torch.Tensor, optional): Padding mask tensor of shape (batch_size, src_seq_len).
+            Float tensor of 0s and 1s, where 0s are padding positions in key/value inputs.
+        q_padding_mask (torch.Tensor, optional): Padding mask tensor of shape (batch_size, tgt_seq_len).
+            Float tensor of 0s and 1s, where 0s are padding positions in query inputs.
+        window_size (int, optional): Window size for sliding window attention. Defaults to None.
+            (-window_size, 0) positions are unmasked when causal is True, (-window_size, window_size) when causal is False.
+        dropout_p (float, optional): Dropout probability. Defaults to 0.0.
+
+    Returns:
+        Output tensor of shape (batch_size, tgt_seq_len, num_heads, head_dim)
+    """
+    query = query.transpose(1, 2)
+    key = key.transpose(1, 2)
+    value = value.transpose(1, 2)
+
+    attn_mask = prepare_4d_attn_mask(
+        padding_mask=padding_mask,
+        q_padding_mask=q_padding_mask,
+        causal=causal,
+        windows_size=window_size,
+        src_seq_len=key.size(2) if padding_mask is None else None,
+        tgt_seq_len=query.size(2) if q_padding_mask is None else None,
+        dtype=query.dtype,
+        device=query.device
+    )
+    return F.scaled_dot_product_attention(query, key, value, attn_mask=attn_mask, dropout_p=dropout_p).transpose(1, 2)
+
