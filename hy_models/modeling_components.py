@@ -2,7 +2,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 import math
-
+from .attention import eager_attn_forward, flash_attn_forward, sdpa_attn_forward, prepare_4d_attn_mask
 
 class Conv1dEmbedding(nn.Module):
     def __init__(self, embed_dim, hidden_size, vocab_size, inter_dim=512, kernel_size=5, dropout=0.1):
@@ -173,6 +173,7 @@ class MultiHeadSelfAttention(nn.Module):
             num_layers (int, optional): Number of layers in the model, used for weight initialization. Defaults to 12.
         """
         super().__init__()
+        self.config = config
         self.embed_dim = config.hidden_size
         self.num_heads = config.num_heads
         self.num_key_value_heads = config.num_key_value_heads if config.num_key_value_heads is not None else config.num_heads
@@ -256,56 +257,54 @@ class MultiHeadSelfAttention(nn.Module):
             query = self.pos_encoding(query, position_ids=input_pos)
             key = self.pos_encoding(key, position_ids=input_pos)
         
-        query = query.transpose(1, 2)
-        key = key.transpose(1, 2)
-        value = value.transpose(1, 2)
-
         # For GQA: Repeat key and value to match num_heads if num_key_value_heads < num_heads
         if self.num_key_value_heads != self.num_heads:
             repeat_factor = self.num_heads // self.num_key_value_heads
-            key = key.repeat_interleave(repeat_factor, dim=1)
-            value = value.repeat_interleave(repeat_factor, dim=1)
+            key = key.repeat_interleave(repeat_factor, dim=2)
+            value = value.repeat_interleave(repeat_factor, dim=2)
 
         # Handle past key/value for incremental decoding
         if past_key_value is not None:
             past_key, past_value = past_key_value
-            key = torch.cat([past_key, key], dim=2)  # Concatenate along sequence dimension
-            value = torch.cat([past_value, value], dim=2)
+            key = torch.cat([past_key, key], dim=1)  # Concatenate along sequence dimension
+            value = torch.cat([past_value, value], dim=1)
             is_causal = False  # No causal mask for past tokens (generation mode)
         else:
             is_causal = self.is_decoder  # Apply causal mask only if in decoder mode
 
-        # Prepare attention mask
-        attn_mask = None
-        if is_causal:
-            # Causal mask: -inf above diagonal (future), 0 on/below diagonal
-            causal_mask = torch.triu(torch.full((seq_len, seq_len), float('-inf'), device=hidden_states.device), diagonal=1)
-            causal_mask = causal_mask.unsqueeze(0).unsqueeze(0)  # Shape: [1, 1, seq_len, seq_len]
-        if attention_mask is not None:
-            # Padding mask: -inf where attention_mask == 0, 0 where == 1
-            padding_mask = attention_mask.unsqueeze(1).unsqueeze(2)
-            padding_mask = torch.where(padding_mask == 0, float('-inf'), 0.0)
-        
-        # Combine masks additively
-        if is_causal and attention_mask is not None:
-            attn_mask = causal_mask + padding_mask  # -inf where either mask has -inf
-        elif is_causal:
-            attn_mask = causal_mask
-        elif attention_mask is not None:
-            attn_mask = padding_mask
-        
-        if attn_mask is not None:
-            attn_mask = attn_mask.to(query.dtype)
-        
-        # Compute attention using scaled dot-product attention
-        attn_output = F.scaled_dot_product_attention(
-            query,
-            key,
-            value,
-            attn_mask=attn_mask,
-            dropout_p=self.dropout.p if self.training else 0.0,
-            is_causal=False
-        )
+
+        if self.config._attn_implementation == "eager":
+            attn_output = eager_attn_forward(
+                query=query,
+                key=key,
+                value=value,
+                causal=is_causal,
+                padding_mask=attention_mask,
+                q_padding_mask=attention_mask,
+                dropout_p=self.dropout.p if self.training else 0.0,
+            )
+        elif self.config._attn_implementation == "sdpa":
+            attn_output = sdpa_attn_forward(
+                query=query,
+                key=key,
+                value=value,
+                causal=is_causal,
+                padding_mask=attention_mask,
+                q_padding_mask=attention_mask,
+                dropout_p=self.dropout.p if self.training else 0.0,
+            )
+        elif self.config._attn_implementation == "flash_attention_2":
+            attn_output = flash_attn_forward(
+                query=query,
+                key=key,
+                value=value,
+                causal=is_causal,
+                padding_mask=attention_mask,
+                q_padding_mask=attention_mask,
+                window_size=window_size,
+                dropout_p=self.dropout.p if self.training else 0.0,
+                dtype=query.dtype
+            )
 
         # Reshape back: [batch_size, num_heads, seq_len, head_dim] -> [batch_size, seq_len, embed_dim]
         attn_output = attn_output.transpose(1, 2).contiguous().view(batch_size, seq_len, self.embed_dim)
