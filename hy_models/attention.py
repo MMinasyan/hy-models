@@ -229,7 +229,7 @@ def _get_flash_attn_unpad_data(mask):
     return indices, cu_seqlens, max_seqlen_in_batch
 
 
-def flash_attn_forward(query, key, value, causal=False, padding_mask=None, q_padding_mask=None, window_size=None, dropout_p=0.0, dtype=torch.bfloat16):
+def flash_attn_forward(query, key, value, causal=False, padding_mask=None, q_padding_mask=None, window_size=None, dropout_p=0.0, dtype=None):
     """
     FlashAttention forward pass.
     If padding_mask or q_padding_mask is provided, flash_attn_varlen_func will be used.
@@ -249,6 +249,9 @@ def flash_attn_forward(query, key, value, causal=False, padding_mask=None, q_pad
         dropout_p (float, optional): Dropout probability. Defaults to 0.0.
         dtype (torch.dtype, optional): Data type. Defaults to torch.bfloat16.
     """
+    input_dtype = query.dtype
+    dtype = torch.bfloat16 if dtype is None else dtype
+
     if window_size is not None:
         if causal:
             window_size = (window_size, 0)
@@ -256,11 +259,12 @@ def flash_attn_forward(query, key, value, causal=False, padding_mask=None, q_pad
             window_size = (window_size, window_size)
     else:
         window_size = (-1, -1)
+
     if padding_mask is None and q_padding_mask is None:
         return flash_attn_func(
-            query.to(dtype) if query.dtype != dtype else query,
-            key.to(dtype) if key.dtype != dtype else key,
-            value.to(dtype) if value.dtype != dtype else value,
+            query.to(dtype) if input_dtype != dtype else query,
+            key.to(dtype) if input_dtype != dtype else key,
+            value.to(dtype) if input_dtype != dtype else value,
             causal=causal,
             window_size=window_size,
             dropout_p=dropout_p
@@ -313,4 +317,4 @@ def flash_attn_forward(query, key, value, causal=False, padding_mask=None, q_pad
         else:
             attn_output = attn_output_unpad.view(batch_size, tgt_seq_len, num_heads, head_dim)
         
-        return attn_output
+        return attn_output.to(input_dtype)

@@ -308,7 +308,7 @@ class MultiHeadSelfAttention(nn.Module):
                 q_padding_mask=attention_mask,
                 window_size=window_size,
                 dropout_p=self.dropout.p if self.training else 0.0,
-                dtype=query.dtype
+                dtype=query.dtype if query.dtype != torch.float32 else None
             )
 
         # Reshape back: [batch_size, num_heads, seq_len, head_dim] -> [batch_size, seq_len, embed_dim]
