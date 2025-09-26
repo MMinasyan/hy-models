@@ -632,11 +632,14 @@ class AutoEditForConditionalGeneration(PreTrainedModel, GenerationMixin):
     def _reorder_cache(self, past_key_values, beam_idx):
         reordered_past = ()
         for layer_past in past_key_values:
-            # Each layer_past is a tuple of (key, value) tensors
-            reordered_layer = tuple(
-                past_state.index_select(0, beam_idx.to(past_state.device))
-                for past_state in layer_past
-            )
-            reordered_past += (reordered_layer,)
+            # Handle None values in the tuple
+            if layer_past[0] is None:
+                reordered_past += (layer_past,)
+            else:
+                reordered_layer = tuple(
+                    past_state.index_select(0, beam_idx.to(past_state.device))
+                    for past_state in layer_past
+                )
+                reordered_past += (reordered_layer,)
         return reordered_past
 

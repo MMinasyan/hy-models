@@ -64,6 +64,8 @@ class ArtConfig(PretrainedConfig):
         self.eos_token_id = eos_token_id
         self._attn_implementation = kwargs.get("attn_implementation", "sdpa")
 
+        self.num_hidden_layers = self.num_layers
+
 
 CONFIG_MAPPING.register("art", ArtConfig)
 
@@ -150,5 +152,7 @@ class AutoEditConfig(PretrainedConfig):
         self.decoder_start_token_id = decoder_start_token_id
         self.is_decoder = is_decoder
         self.is_encoder_decoder = is_encoder_decoder
+
+        self.num_hidden_layers = self.num_layers
 
 CONFIG_MAPPING.register("autoedit", AutoEditConfig)

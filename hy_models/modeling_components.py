@@ -246,7 +246,7 @@ class MultiHeadSelfAttention(nn.Module):
         value = value.view(batch_size, seq_len, self.num_key_value_heads, self.head_dim)
 
         if self.pos_encoding is not None:
-            if past_key_value is not None:
+            if past_key_value is not None and past_key_value[0] is not None:
                 past_seq_len = past_key_value[0].size(2)
                 input_pos = torch.arange(
                     past_seq_len,
@@ -265,7 +265,7 @@ class MultiHeadSelfAttention(nn.Module):
             value = value.repeat_interleave(repeat_factor, dim=2)
 
         # Handle past key/value for incremental decoding
-        if past_key_value is not None:
+        if past_key_value is not None and past_key_value[0] is not None:
             past_key, past_value = past_key_value
             key = torch.cat([past_key, key], dim=1)  # Concatenate along sequence dimension
             value = torch.cat([past_value, value], dim=1)
