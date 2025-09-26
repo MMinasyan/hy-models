@@ -218,7 +218,7 @@ class ArtForCausalLM(PreTrainedModel, GenerationMixin):
 
         self.lm_head = nn.Linear(config.hidden_size, config.vocab_size, bias=False)
 
-        self._initialize_embedding()
+        self._init_embedding()
 
         if config.tie_weights:
             self.lm_head.weight = self.transformer.embed_tokens.weight
@@ -246,9 +246,14 @@ class ArtForCausalLM(PreTrainedModel, GenerationMixin):
     def set_decoder(self, decoder: nn.Module):
         self.transformer = decoder
 
-    def _initialize_embedding(self):
+    def _init_embedding(self):
         std = math.sqrt(1 / self.transformer.embed_tokens.embedding_dim)
         nn.init.normal_(self.transformer.embed_tokens.weight, mean=0.0, std=std)
+    
+    def _init_weights(self, module):
+        if hasattr(module, '_init_weights') and module != self:
+            return
+        pass
     
     def prepare_inputs_for_generation(self, input_ids, past_key_values=None, **kwargs):
         if past_key_values is not None:

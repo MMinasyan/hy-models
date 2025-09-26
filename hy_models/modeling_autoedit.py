@@ -466,7 +466,7 @@ class AutoEditForConditionalGeneration(PreTrainedModel, GenerationMixin):
         
         # Shared embedding layer for encoder, decoder, and LM head
         self.shared_embedding = nn.Embedding(config.vocab_size, config.hidden_size)
-        self._initialize_shared_embedding()
+        self._init_shared_embedding()
         
         self.pos_encoding = RotaryPositionalEmbeddings(
             dim=config.hidden_size//config.num_heads,
@@ -496,7 +496,7 @@ class AutoEditForConditionalGeneration(PreTrainedModel, GenerationMixin):
         if config.tie_weights:
             self.tie_weights()
         else:
-            self._initialize_lm_head()
+            self._init_lm_head()
 
         self.loss_fct = nn.CrossEntropyLoss(ignore_index=-100)
     
@@ -509,13 +509,18 @@ class AutoEditForConditionalGeneration(PreTrainedModel, GenerationMixin):
     def get_decoder(self):
         return self.decoder
     
-    def _initialize_shared_embedding(self):
+    def _init_shared_embedding(self):
         std = math.sqrt(1 / self.config.hidden_size)
         nn.init.normal_(self.shared_embedding.weight, mean=0.0, std=std)
     
-    def _initialize_lm_head(self):
+    def _init_lm_head(self):
         std = math.sqrt(1 / self.config.hidden_size)
         nn.init.normal_(self.lm_head.weight, mean=0.0, std=std)
+
+    def _init_weights(self, module):
+        if hasattr(module, '_init_weights') and module != self:
+            return
+        pass
 
     def forward(
         self,

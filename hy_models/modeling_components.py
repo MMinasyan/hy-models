@@ -16,9 +16,9 @@ class Conv1dEmbedding(nn.Module):
         self.norm2 = nn.LayerNorm(hidden_size)
         self.conv2 = nn.Conv1d(in_channels=hidden_size, out_channels=hidden_size, kernel_size=kernel_size, stride=3, padding=3, bias=True)
         self.dropout = nn.Dropout(dropout)
-        self._init_weights()
+        self._initialize_weights()
         
-    def _init_weights(self):
+    def _initialize_weights(self):
         embed_dim = self.embed.weight.size(-1)
         nn.init.normal_(self.embed.weight, mean=0, std=embed_dim ** -0.5)
         nn.init.kaiming_normal_(self.conv1.weight, mode='fan_in', nonlinearity='relu')
@@ -139,9 +139,9 @@ class MultiLayerPerceptron(nn.Module):
         self.out = nn.Linear(intermediate_dim, hidden_size, bias=bias)
         self.silu = nn.SiLU()
 
-        self._init_weights()
+        self._initialize_weights()
 
-    def _init_weights(self):
+    def _initialize_weights(self):
         std = 0.02 / math.sqrt(self.num_layers)
         nn.init.normal_(self.w.weight, mean=0.0, std=std)
         nn.init.normal_(self.v.weight, mean=0.0, std=std)
@@ -196,9 +196,9 @@ class MultiHeadSelfAttention(nn.Module):
         self.dropout = nn.Dropout(config.dropout)
         self.pos_encoding = pos_encoding
 
-        self._reset_parameters()
+        self.init_weights()
 
-    def _reset_parameters(self):
+    def init_weights(self):
         # std = 0.02
         # kv_std = std / (self.num_heads / self.num_key_value_heads) ** 0.5
         # out_std = std / (2 * self.num_layers)**0.5
@@ -357,9 +357,9 @@ class MultiHeadCrossAttention(nn.Module):
         self.dropout = nn.Dropout(config.dropout)
         self.pos_encoding = pos_encoding
 
-        self._reset_parameters()
+        self.init_weights()
 
-    def _reset_parameters(self):
+    def init_weights(self):
         std = 0.02 / math.sqrt(self.num_layers)
         kv_std = std / (self.num_heads / self.num_key_value_heads) ** 0.5
         torch.nn.init.normal_(self.query_proj.weight, mean=0.0, std=std)
