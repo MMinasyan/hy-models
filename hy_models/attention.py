@@ -1,7 +1,14 @@
 import torch
 import torch.nn.functional as F
 import math
-from flash_attn import flash_attn_func, flash_attn_varlen_func
+
+try:
+    from flash_attn import flash_attn_func, flash_attn_varlen_func
+    HAS_FLASH_ATTN = True
+except ImportError:
+    HAS_FLASH_ATTN = False
+    flash_attn_func = None
+    flash_attn_varlen_func = None
 
 
 def prepare_4d_attn_mask(padding_mask=None, q_padding_mask=None, causal=False, windows_size=None, src_seq_len=None, tgt_seq_len=None, dtype=torch.float32, device=None):
@@ -249,6 +256,12 @@ def flash_attn_forward(query, key, value, causal=False, padding_mask=None, q_pad
         dropout_p (float, optional): Dropout probability. Defaults to 0.0.
         dtype (torch.dtype, optional): Data type. Defaults to torch.bfloat16.
     """
+    if not HAS_FLASH_ATTN:
+        raise ImportError(
+            "flash_attn_forward requires the flash-attn library to be installed. "
+            "Please install it with: pip install flash-attn --no-build-isolation"
+        )
+    
     input_dtype = query.dtype
     dtype = torch.bfloat16 if dtype is None else dtype
 
