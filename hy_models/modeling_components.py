@@ -311,8 +311,8 @@ class MultiHeadSelfAttention(nn.Module):
                 dtype=query.dtype if query.dtype != torch.float32 else None
             )
 
-        # Reshape back: [batch_size, num_heads, seq_len, head_dim] -> [batch_size, seq_len, embed_dim]
-        attn_output = attn_output.transpose(1, 2).contiguous().view(batch_size, seq_len, self.embed_dim)
+        # Reshape back: [batch_size, seq_len, num_heads, head_dim] -> [batch_size, seq_len, embed_dim]
+        attn_output = attn_output.contiguous().view(batch_size, seq_len, self.embed_dim)
 
         output = self.out_proj(attn_output)
 

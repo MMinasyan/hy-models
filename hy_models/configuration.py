@@ -146,7 +146,7 @@ class AutoEditConfig(PretrainedConfig):
         self.embedding_type = embedding_type
         self.tie_weights = tie_weights
         self.tie_encoder_weights = tie_encoder_weights
-        self.encoder_vocab_size = encoder_vocab_size
+        self.encoder_vocab_size = encoder_vocab_size if encoder_vocab_size is not None else vocab_size
         self.pad_token_id = pad_token_id
         self.eos_token_id = eos_token_id
         self.decoder_start_token_id = decoder_start_token_id

@@ -80,11 +80,11 @@ class ArtDecoderLayer(nn.Module):
         x = self.norm2(hidden_states)
         x_mlp = self.mlp(x)
         x_mlp = self.dropout_layer(x_mlp)
-        x = x + x_mlp
+        hidden_states = hidden_states + x_mlp
 
         if use_cache:
-            return x, past_key_value
-        return x
+            return hidden_states, past_key_value
+        return hidden_states
 
 
 class ArtModel(nn.Module):
@@ -151,9 +151,8 @@ class ArtModel(nn.Module):
         all_hidden_states = () if output_hidden_states else None
         next_cache = [] if use_cache else None
 
-        if attention_mask is None:
-            attention_mask = hidden_states.sum(dim=-1) == 0
-            attention_mask = attention_mask.to(hidden_states.dtype)
+        if attention_mask is None and input_ids is not None:
+            attention_mask = (input_ids != self.config.pad_token_id).to(hidden_states.dtype)
 
         # Pass through each layer
         for i, layer in enumerate(self.layers):

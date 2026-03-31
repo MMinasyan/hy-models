@@ -178,7 +178,11 @@ def eager_attn_forward(query, key, value, causal=False, padding_mask=None, q_pad
         device=query.device
     )
 
-    return _eager_attention_forward(query, key, value, attn_mask=attn_mask, dropout_p=dropout_p, output_attentions=output_attentions).transpose(1, 2)
+    result = _eager_attention_forward(query, key, value, attn_mask=attn_mask, dropout_p=dropout_p, output_attentions=output_attentions)
+    if output_attentions:
+        output, attn_weights = result
+        return output.transpose(1, 2), attn_weights
+    return result.transpose(1, 2)
 
 
 def sdpa_attn_forward(query, key, value, causal=False, padding_mask=None, q_padding_mask=None, window_size=None, dropout_p=0.0):
@@ -291,7 +295,8 @@ def flash_attn_forward(query, key, value, causal=False, padding_mask=None, q_pad
             indices_q, cu_seqlens_q, max_seqlen_q = _get_flash_attn_unpad_data(q_padding_mask)
             query_flat = query.reshape(batch_size * tgt_seq_len, num_heads, head_dim)[indices_q]
         else:
-            cu_seqlens_q = torch.arange(0, (batch_size + 1) * tgt_seq_len, step=tgt_seq_len, 
+            indices_q = None
+            cu_seqlens_q = torch.arange(0, (batch_size + 1) * tgt_seq_len, step=tgt_seq_len,
                                     dtype=torch.int32, device=query.device)
             max_seqlen_q = tgt_seq_len
             query_flat = query.reshape(batch_size * tgt_seq_len, num_heads, head_dim)
